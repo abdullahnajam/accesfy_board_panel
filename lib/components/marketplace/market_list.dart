@@ -1,6 +1,8 @@
+import 'package:accessify/models/coupons_model.dart';
 import 'package:accessify/models/home/homeowner.dart';
 import 'package:accessify/models/incident/incident_model.dart';
 import 'package:accessify/screens/navigators/incident_screen.dart';
+import 'package:accessify/screens/navigators/marketplace_screen.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data_table_2/data_table_2.dart';
@@ -10,14 +12,14 @@ import 'package:intl/intl.dart';
 
 import '../../../../constants.dart';
 
-class IncidentsList extends StatefulWidget {
-  const IncidentsList({Key? key}) : super(key: key);
+class MarketPlaceList extends StatefulWidget {
+  const MarketPlaceList({Key? key}) : super(key: key);
 
   @override
-  _IncidentsListState createState() => _IncidentsListState();
+  _MarketPlaceListState createState() => _MarketPlaceListState();
 }
 
-class _IncidentsListState extends State<IncidentsList> {
+class _MarketPlaceListState extends State<MarketPlaceList> {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -30,11 +32,11 @@ class _IncidentsListState extends State<IncidentsList> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Incidents/Complains/Suggestions",
+            "Marketplace Coupons",
             style: Theme.of(context).textTheme.subtitle1,
           ),
           StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance.collection('reports').snapshots(),
+            stream: FirebaseFirestore.instance.collection('coupons').snapshots(),
             builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (snapshot.hasError) {
                 return Text('Something went wrong');
@@ -52,7 +54,7 @@ class _IncidentsListState extends State<IncidentsList> {
                   margin: EdgeInsets.all(20),
                   padding: EdgeInsets.all(80),
                   alignment: Alignment.center,
-                  child: Text("No incidents are registered"),
+                  child: Text("No coupons found"),
                 );
               }
               print("size ${snapshot.data!.size}");
@@ -66,20 +68,28 @@ class _IncidentsListState extends State<IncidentsList> {
                         label: Text("Title"),
                       ),
                       DataColumn(
-                        label: Text("Type"),
-                      ),
-                      DataColumn(
                         label: Text("Description"),
                       ),
-
                       DataColumn(
-                        label: Text("Time"),
+                        label: Text("Price"),
+                      ),
+                      DataColumn(
+                        label: Text("Classification"),
                       ),
                       DataColumn(
                         label: Text("Photo"),
                       ),
                       DataColumn(
+                        label: Text("Phone"),
+                      ),
+                      DataColumn(
                         label: Text("Status"),
+                      ),
+                      DataColumn(
+                        label: Text("Expiry Date"),
+                      ),
+                      DataColumn(
+                        label: Text("Actions"),
                       ),
 
 
@@ -112,7 +122,7 @@ Future<void> _showApproveDialog(String docId,BuildContext context) async {
         content: SingleChildScrollView(
           child: ListBody(
             children: const <Widget>[
-              Text('Do you want to complete this report?'),
+              Text('Do you want to approve this coupon?'),
             ],
           ),
         ),
@@ -120,8 +130,8 @@ Future<void> _showApproveDialog(String docId,BuildContext context) async {
           TextButton(
             child: const Text('Yes'),
             onPressed: () {
-              FirebaseFirestore.instance.collection('reports').doc(docId).update({
-                'status': "completed",
+              FirebaseFirestore.instance.collection('coupons').doc(docId).update({
+                'status': "Approved",
               }).then((value) {
                 print("added");
                 Navigator.pop(context);
@@ -141,15 +151,15 @@ Future<void> _showApproveDialog(String docId,BuildContext context) async {
 }
 
 DataRow _buildListItem(BuildContext context, DocumentSnapshot data) {
-  final model = IncidentModel.fromSnapshot(data);
+  final model = CouponsModel.fromSnapshot(data);
   return DataRow(cells: [
       DataCell(Text(model.title)),
-    DataCell(Text(model.type)),
     DataCell(Text(model.description,maxLines: 1,)),
-    //DataCell(Text(model.classification)),
-    DataCell(Text(model.time)),
-    DataCell(Image.network(model.photo,width: 50,height: 50,)),
-    model.status=="pending"?DataCell(InkWell(
+    DataCell(Text(model.price)),
+    DataCell(Text(model.classification)),
+    DataCell(Image.network(model.image,width: 50,height: 50,)),
+    DataCell(Text(model.phone)),
+    model.status=="Pending"?DataCell(InkWell(
       onTap: (){
         print("tap");
         AwesomeDialog(
@@ -157,12 +167,12 @@ DataRow _buildListItem(BuildContext context, DocumentSnapshot data) {
           width: MediaQuery.of(context).size.width*0.3,
           dialogType: DialogType.QUESTION,
           animType: AnimType.TOPSLIDE,
-          title: 'Report Status',
+          title: 'Coupon Status',
           dialogBackgroundColor: secondaryColor,
-          desc: 'Do you want this to mark as complete',
+          desc: 'Do you want this to approve this?',
           btnOkOnPress: () {
-            FirebaseFirestore.instance.collection('reports').doc(model.id).update({
-              'status': "completed",
+            FirebaseFirestore.instance.collection('coupons').doc(model.id).update({
+              'status': "Approved",
             }).then((value) {
               print("added");
               Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => IncidentScreen()));
@@ -181,7 +191,7 @@ DataRow _buildListItem(BuildContext context, DocumentSnapshot data) {
             border: Border.all(color: primaryColor)
         ),
         alignment: Alignment.center,
-        child: Text("Complete",style: Theme.of(context).textTheme.button!.apply(color: primaryColor),),
+        child: Text("Approve",maxLines: 1,style: Theme.of(context).textTheme.button!.apply(color: primaryColor),),
       ),
     )):DataCell(Container(
       decoration: BoxDecoration(
@@ -191,6 +201,29 @@ DataRow _buildListItem(BuildContext context, DocumentSnapshot data) {
       padding: EdgeInsets.all(5),
       child: Text(model.status,style: TextStyle(color: Colors.lightGreenAccent),),
     )),
+    DataCell(Text(model.expiration)),
+    DataCell(IconButton(
+      icon: Icon(Icons.delete_forever,color: Colors.white,),
+      onPressed: (){
+        AwesomeDialog(
+          dialogBackgroundColor: secondaryColor,
+          width: MediaQuery.of(context).size.width*0.3,
+          context: context,
+          dialogType: DialogType.QUESTION,
+          animType: AnimType.BOTTOMSLIDE,
+          title: 'Delete Coupon',
+          desc: 'Are you sure you want to delete this coupon?',
+          btnCancelOnPress: () {
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => MarketPlaceScreen()));
+          },
+          btnOkOnPress: () {
+            FirebaseFirestore.instance.collection('coupons').doc(model.id).delete().then((value) =>
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => MarketPlaceScreen())));
+          },
+        )..show();
+
+      },
+    ),),
   ]);
 }
 

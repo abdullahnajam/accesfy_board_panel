@@ -1,15 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class IncidentModel{
-  String id,description,classification,time,title,type,photo,status;
+  String id,description,time,title,type,photo,status;
 
-  IncidentModel(this.id, this.description,this.classification, this.time, this.title,
+  IncidentModel(this.id, this.description, this.time, this.title,
       this.type, this.photo, this.status);
 
   IncidentModel.fromMap(Map<String,dynamic> map,String key)
       : id=key,
         description = map['description'],
-        classification = map['classification'],
+        //classification = map['classification'],
         time = map['time'],
         title = map['title'],
         type = map['type'],

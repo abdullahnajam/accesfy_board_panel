@@ -78,6 +78,9 @@ class _AnnouncementListState extends State<AnnouncementList> {
                         label: Text("Description"),
                       ),
                       DataColumn(
+                        label: Text("Photo"),
+                      ),
+                      DataColumn(
                         label: Text("Expire Date"),
                       ),
                       DataColumn(
@@ -573,6 +576,7 @@ DataRow _buildListItem(BuildContext context, DocumentSnapshot data) {
     DataCell(Text(model.audience)),
     DataCell(Text(model.information)),
     DataCell(Text(model.description)),
+    DataCell(Image.network(model.photo,width: 50,height: 50,)),
     DataCell(Text(model.expDate)),
     DataCell(Text(model.neverExpire.toString())),
     DataCell(Row(

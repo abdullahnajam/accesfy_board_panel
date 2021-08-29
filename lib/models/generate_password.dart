@@ -5,16 +5,14 @@ String generatePassword({
   bool isNumber = true,
   bool isSpecial = true,
 }) {
-  final length = 20;
-  final letterLowerCase = "abcdefghijklmnopqrstuvwxyz";
+  final length = 6;
   final letterUpperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  final letterLowerCase="abcdefghijklmnopqrstuvwxyz";
   final number = '0123456789';
-  final special = '@#%^*>\$@?/[]=+';
 
   String chars = "";
   if (letter) chars += '$letterLowerCase$letterUpperCase';
   if (isNumber) chars += '$number';
-  if (isSpecial) chars += '$special';
 
 
   return List.generate(length, (index) {

@@ -6,6 +6,7 @@ import 'package:accessify/screens/navigators/annoucement_screen.dart';
 import 'package:accessify/screens/navigators/incident_screen.dart';
 import 'package:accessify/screens/navigators/inventory_screen.dart';
 import 'package:accessify/screens/navigators/main_screen.dart';
+import 'package:accessify/screens/navigators/marketplace_screen.dart';
 import 'package:accessify/screens/navigators/reservation_screen.dart';
 import 'package:accessify/screens/navigators/survey_screen.dart';
 import 'package:flutter/material.dart';
@@ -86,7 +87,9 @@ class SideMenu extends StatelessWidget {
             DrawerListTile(
               title: "Market Place and Coupons",
               svgSrc: "assets/icons/market.png",
-              press: () {},
+              press: () {
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => MarketPlaceScreen()));
+              },
             ),
 
           ],
