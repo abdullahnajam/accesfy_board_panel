@@ -10,7 +10,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase/firebase.dart' as fb;
 import 'package:sn_progress_dialog/progress_dialog.dart';
-
+import 'package:firebase_core/firebase_core.dart';
 import '../../../constants.dart';
 
 class DashboardSidebar extends StatefulWidget {
@@ -47,16 +47,36 @@ class _DashboardSidebarState extends State<DashboardSidebar> {
 
     });
   }
+  String neighbour="",neighbourId="";
+
+
+  @override
+  void initState() {
+    super.initState();
+    FirebaseFirestore.instance
+        .collection('boardmember')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .get()
+        .then((DocumentSnapshot documentSnapshot) {
+      if (documentSnapshot.exists) {
+        Map<String, dynamic> data = documentSnapshot.data() as Map<String, dynamic>;
+        neighbour=data['neighbourhoodName'];
+        neighbourId=data['neighbourId'];
+
+      }
+    });
+  }
 
 
   registerGuard(GuardModel model) async{
     print("rr");
     final ProgressDialog pr = ProgressDialog(context: context);
     pr.show(max: 100, msg: "Adding");
+    FirebaseApp app = await Firebase.initializeApp(name: 'Secondary', options: Firebase.app().options);
     try {
       print("rr try");
       String password=generatePassword();
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      FirebaseAuth.instanceFor(app: app).createUserWithEmailAndPassword(
           email: model.email.trim(),
           password: password
       ).then((value) {
@@ -66,7 +86,6 @@ class _DashboardSidebarState extends State<DashboardSidebar> {
           if (user == null) {
             print('User is currently signed out!');
           } else {
-
             print('User is signed in!');
             User? user=FirebaseAuth.instance.currentUser;
             FirebaseFirestore.instance.collection('guard').doc(user!.uid).set({
@@ -78,6 +97,8 @@ class _DashboardSidebarState extends State<DashboardSidebar> {
               'supervisor': model.supervisor,
               'email': model.email,
               'password': password,
+              'neighbourId':neighbourId,
+              'neighbourhood':neighbour,
 
 
             }).then((value) {
@@ -103,6 +124,7 @@ class _DashboardSidebarState extends State<DashboardSidebar> {
       pr.close();
       print(e.toString());
     }
+    await app.delete();
   }
 
 

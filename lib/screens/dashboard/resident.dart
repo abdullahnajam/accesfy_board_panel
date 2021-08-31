@@ -10,6 +10,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sn_progress_dialog/sn_progress_dialog.dart';
 import '../../constants.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase/firebase.dart' as fb;
 
 class DashBoardScreen extends StatefulWidget {
@@ -35,26 +36,49 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
   var addressController=TextEditingController();
   var commentController=TextEditingController();
   String? _classification;
+  String neighbour="",neighbourId="";
 
+
+  @override
+  void initState() {
+    super.initState();
+    FirebaseFirestore.instance
+        .collection('boardmember')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .get()
+        .then((DocumentSnapshot documentSnapshot) {
+      if (documentSnapshot.exists) {
+        Map<String, dynamic> data = documentSnapshot.data() as Map<String, dynamic>;
+        setState(() {
+          neighbour=data['neighbourhoodName'];
+          neighbourId=data['neighbourId'];
+          print("nn $neighbour $neighbourId");
+        });
+
+      }
+    });
+  }
 
   registerHomeOwner() async{
     print("rr");
     final ProgressDialog pr = ProgressDialog(context: context);
     pr.show(max: 100, msg: "Add Home Owner");
+    FirebaseApp app = await Firebase.initializeApp(name: 'Secondary', options: Firebase.app().options);
     try {
       print("rr try");
       String password=generatePassword();
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      print("pass $password");
+      await FirebaseAuth.instanceFor(app: app).createUserWithEmailAndPassword(
           email: emailController.text.trim(),
-          password: password
+          password: "password"
       ).then((value) {
+        print("Created");
         FirebaseAuth.instance
             .authStateChanges()
             .listen((User? user) {
           if (user == null) {
             print('User is currently signed out!');
           } else {
-
             print('User is signed in!');
             User? user=FirebaseAuth.instance.currentUser;
             FirebaseFirestore.instance.collection('homeowner').doc(user!.uid).set({
@@ -70,6 +94,8 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
               'comment': commentController.text,
               'email': emailController.text,
               'password': password,
+              'neighbourId':neighbourId,
+              'neighbourhood':neighbour,
               'classification':_classification==null?"No Classification":_classification
 
 
@@ -96,6 +122,9 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
       pr.close();
       print(e.toString());
     }
+
+
+    await app.delete();
   }
 
 
