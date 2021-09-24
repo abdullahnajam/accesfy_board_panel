@@ -24,6 +24,32 @@ class InventorySidebar extends StatefulWidget {
 }
 
 class _InventorySidebarState extends State<InventorySidebar> {
+  String? neighbourId;
+  bool isLoading=false;
+
+  getUserData()async{
+    User user=FirebaseAuth.instance.currentUser!;
+    FirebaseFirestore.instance
+        .collection('boardmember')
+        .doc(user.uid)
+        .get()
+        .then((DocumentSnapshot documentSnapshot) {
+      if (documentSnapshot.exists) {
+        Map<String, dynamic> data = documentSnapshot.data() as Map<String, dynamic>;
+        neighbourId=data['neighbourId'];
+        setState(() {
+          isLoading=true;
+        });
+      }
+    });
+
+  }
+
+
+  @override
+  void initState() {
+    getUserData();
+  }
 
   updateSupply(SupplyModel model,BuildContext context) async{
     final ProgressDialog pr = ProgressDialog(context: context);
@@ -885,7 +911,7 @@ class _InventorySidebarState extends State<InventorySidebar> {
   }
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return isLoading?Container(
       padding: EdgeInsets.all(defaultPadding),
       decoration: BoxDecoration(
         color: secondaryColor,
@@ -906,7 +932,8 @@ class _InventorySidebarState extends State<InventorySidebar> {
             margin: EdgeInsets.only(top: defaultPadding),
             padding: EdgeInsets.all(defaultPadding),
             child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('inventory_supply').snapshots(),
+              stream: FirebaseFirestore.instance.collection('inventory_supply')
+                  .where("neighbourId",isEqualTo:neighbourId).snapshots(),
               builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                 if (snapshot.hasError) {
                   return Center(
@@ -995,7 +1022,7 @@ class _InventorySidebarState extends State<InventorySidebar> {
 
         ],
       ),
-    );
+    ):Center(child:CircularProgressIndicator());
   }
 }
 

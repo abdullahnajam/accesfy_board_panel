@@ -5,6 +5,7 @@ import 'package:accessify/screens/navigators/main_screen.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data_table_2/data_table_2.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:sn_progress_dialog/progress_dialog.dart';
@@ -22,11 +23,36 @@ class SurveyList extends StatefulWidget {
 class _SurveyListState extends State<SurveyList> {
 
 
+  String? neighbourId;
+  bool isLoading=false;
+
+  getUserData()async{
+    User user=FirebaseAuth.instance.currentUser!;
+    FirebaseFirestore.instance
+        .collection('boardmember')
+        .doc(user.uid)
+        .get()
+        .then((DocumentSnapshot documentSnapshot) {
+      if (documentSnapshot.exists) {
+        Map<String, dynamic> data = documentSnapshot.data() as Map<String, dynamic>;
+        neighbourId=data['neighbourId'];
+        setState(() {
+          isLoading=true;
+        });
+      }
+    });
+
+  }
 
 
   @override
+  void initState() {
+    getUserData();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
+    return isLoading?Container(
       padding: EdgeInsets.all(defaultPadding),
       decoration: BoxDecoration(
         color: secondaryColor,
@@ -40,7 +66,7 @@ class _SurveyListState extends State<SurveyList> {
             style: Theme.of(context).textTheme.subtitle1,
           ),
           StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance.collection('survey').snapshots(),
+            stream: FirebaseFirestore.instance.collection('survey').where("neighbourId",isEqualTo:neighbourId).snapshots(),
             builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (snapshot.hasError) {
                 return Text('Something went wrong');
@@ -95,7 +121,7 @@ class _SurveyListState extends State<SurveyList> {
 
         ],
       ),
-    );
+    ):Center(child: CircularProgressIndicator(),);
   }
 }
 List<DataRow> _buildList(BuildContext context, List<DocumentSnapshot> snapshot) {
@@ -248,7 +274,8 @@ Future<void> _showAttemptsDialog(SurveyModel model,BuildContext context) async {
 
                 Expanded(
                   child: StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance.collection('attempts').doc(model.id).collection("answers").snapshots(),
+                    stream: FirebaseFirestore.instance.collection('attempts')
+                        .where("questionId",isEqualTo:model.id).snapshots(),
                     builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                       if (snapshot.hasError) {
                         return Center(

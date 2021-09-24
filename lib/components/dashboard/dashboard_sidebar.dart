@@ -69,61 +69,47 @@ class _DashboardSidebarState extends State<DashboardSidebar> {
 
 
   registerGuard(GuardModel model) async{
-    print("rr");
     final ProgressDialog pr = ProgressDialog(context: context);
-    pr.show(max: 100, msg: "Adding");
     FirebaseApp app = await Firebase.initializeApp(name: 'Secondary', options: Firebase.app().options);
     try {
-      print("rr try");
+      pr.show(max: 100, msg: "Please wait");
       String password=generatePassword();
-      FirebaseAuth.instanceFor(app: app).createUserWithEmailAndPassword(
+      await FirebaseAuth.instanceFor(app: app).createUserWithEmailAndPassword(
           email: model.email.trim(),
           password: password
-      ).then((value) {
-        FirebaseAuth.instance
-            .authStateChanges()
-            .listen((User? user) {
-          if (user == null) {
-            print('User is currently signed out!');
-          } else {
-            print('User is signed in!');
-            User? user=FirebaseAuth.instance.currentUser;
-            FirebaseFirestore.instance.collection('guard').doc(user!.uid).set({
-              'firstName': model.firstName,
-              'lastName': model.lastName,
-              'photoId': model.photoId,
-              'companyName': model.companyName,
-              'phone': model.phone,
-              'supervisor': model.supervisor,
-              'email': model.email,
-              'password': password,
-              'neighbourId':neighbourId,
-              'neighbourhood':neighbour,
-
-
-            }).then((value) {
-              pr.close();
-              print("added");
-              Navigator.pop(context);
-            });
-          }
+      ).then((value){
+        FirebaseFirestore.instance.collection('guard').doc(value.user!.uid).set({
+          'firstName': model.firstName,
+          'lastName': model.lastName,
+          'photoId': model.photoId,
+          'companyName': model.companyName,
+          'phone': model.phone,
+          'supervisor': model.supervisor,
+          'email': model.email,
+          'password': password,
+          'neighbourId':neighbourId,
+          'neighbourhood':neighbour,
+        }).then((value) {
+          pr.close();
+          Navigator.pop(context);
+        }).onError((error, stackTrace){
+          final snackBar = SnackBar(content: Text("Database Error"));
+          ScaffoldMessenger.of(context).showSnackBar(snackBar);
         });
-      }).catchError((onError){
-        pr.close();
-        print(onError.toString());
       });
     } on FirebaseAuthException catch (e) {
-      pr.close();
       if (e.code == 'weak-password') {
+        pr.close();
         print('The password provided is too weak.');
-
       } else if (e.code == 'email-already-in-use') {
-
+        pr.close();
+        print('The account already exists for that email.');
       }
     } catch (e) {
+      print(e);
       pr.close();
-      print(e.toString());
     }
+    pr.close();
     await app.delete();
   }
 

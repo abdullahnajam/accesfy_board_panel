@@ -1,5 +1,6 @@
 import 'dart:html';
 import 'dart:typed_data';
+import 'package:accessify/models/home/homeowner.dart';
 import 'package:http/http.dart' as http;
 import 'package:accessify/components/inventory/inventory_list.dart';
 import 'package:accessify/components/inventory/inventory_sidebar.dart';
@@ -32,6 +33,30 @@ class Inventory extends StatefulWidget {
 
 class _InventoryState extends State<Inventory> {
 
+  String? neighbourId;
+
+  getUserData()async{
+    User user=FirebaseAuth.instance.currentUser!;
+    FirebaseFirestore.instance
+        .collection('boardmember')
+        .doc(user.uid)
+        .get()
+        .then((DocumentSnapshot documentSnapshot) {
+      if (documentSnapshot.exists) {
+        Map<String, dynamic> data = documentSnapshot.data() as Map<String, dynamic>;
+        neighbourId=data['neighbourId'];
+      }
+    });
+
+  }
+
+
+
+  @override
+  void initState() {
+    getUserData();
+  }
+
 
 
 
@@ -51,6 +76,7 @@ class _InventoryState extends State<Inventory> {
       'comment': model.comment,
       'condition': model.condition,
       'inventoryFrequency': model.inventoryFrequency,
+      'neighbourId':neighbourId,
       'lastInventoryDate': model.lastInventoryDate,
 
 
@@ -1499,6 +1525,7 @@ class _InventoryState extends State<Inventory> {
                                           'condition': condition,
                                           'inventoryFrequency': inventoryFrequency,
                                           'lastScanDate': lastScanDateController.text,
+                                          'neighbourId': neighbourId,
                                           'qr_image':value.toString()
 
 

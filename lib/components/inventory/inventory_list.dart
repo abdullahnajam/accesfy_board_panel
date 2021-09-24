@@ -9,6 +9,7 @@ import 'package:accessify/screens/navigators/main_screen.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data_table_2/data_table_2.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
@@ -25,10 +26,36 @@ class InventoryList extends StatefulWidget {
 
 
 class _InventoryListState extends State<InventoryList> {
+  String? neighbourId;
+  bool isLoading=false;
+
+  getUserData()async{
+    User user=FirebaseAuth.instance.currentUser!;
+    FirebaseFirestore.instance
+        .collection('boardmember')
+        .doc(user.uid)
+        .get()
+        .then((DocumentSnapshot documentSnapshot) {
+      if (documentSnapshot.exists) {
+        Map<String, dynamic> data = documentSnapshot.data() as Map<String, dynamic>;
+        neighbourId=data['neighbourId'];
+        setState(() {
+          isLoading=true;
+        });
+      }
+    });
+
+  }
+
+
+  @override
+  void initState() {
+    getUserData();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return isLoading?Container(
       padding: EdgeInsets.all(defaultPadding),
       decoration: BoxDecoration(
         color: secondaryColor,
@@ -42,7 +69,8 @@ class _InventoryListState extends State<InventoryList> {
             style: Theme.of(context).textTheme.subtitle1,
           ),
           StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance.collection('inventory_assets').snapshots(),
+            stream: FirebaseFirestore.instance.collection('inventory_assets')
+                .where("neighbourId",isEqualTo:neighbourId).snapshots(),
             builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (snapshot.hasError) {
                 return Text('Something went wrong');
@@ -103,7 +131,7 @@ class _InventoryListState extends State<InventoryList> {
 
         ],
       ),
-    );
+    ):Center(child:CircularProgressIndicator());
   }
 }
 List<DataRow> _buildList(BuildContext context, List<DocumentSnapshot> snapshot) {

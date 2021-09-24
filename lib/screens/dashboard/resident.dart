@@ -60,71 +60,54 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
   }
 
   registerHomeOwner() async{
-    print("rr");
     final ProgressDialog pr = ProgressDialog(context: context);
-    pr.show(max: 100, msg: "Add Home Owner");
     FirebaseApp app = await Firebase.initializeApp(name: 'Secondary', options: Firebase.app().options);
     try {
-      print("rr try");
+      pr.show(max: 100, msg: "Please wait");
       String password=generatePassword();
-      print("pass $password");
       await FirebaseAuth.instanceFor(app: app).createUserWithEmailAndPassword(
           email: emailController.text.trim(),
-          password: "password"
-      ).then((value) {
-        print("Created");
-        FirebaseAuth.instance
-            .authStateChanges()
-            .listen((User? user) {
-          if (user == null) {
-            print('User is currently signed out!');
-          } else {
-            print('User is signed in!');
-            User? user=FirebaseAuth.instance.currentUser;
-            FirebaseFirestore.instance.collection('homeowner').doc(user!.uid).set({
-              'firstName': firstNameController.text,
-              'lastName': lastNameController.text,
-              'street': streetController.text,
-              'building': buildingController.text,
-              'floor': floorController.text,
-              'apartmentUnit': apartmentUnitController.text,
-              'additionalAddress': addressController.text,
-              'phone': phoneController.text,
-              'cellPhone': cellPhoneController.text,
-              'comment': commentController.text,
-              'email': emailController.text,
-              'password': password,
-              'neighbourId':neighbourId,
-              'neighbourhood':neighbour,
-              'classification':_classification==null?"No Classification":_classification
-
-
-            }).then((value) {
-              pr.close();
-              print("added");
-              Navigator.pop(context);
-            });
-          }
+          password: password
+      ).then((value){
+        FirebaseFirestore.instance.collection('homeowner').doc(value.user!.uid).set({
+          'firstName': firstNameController.text,
+          'lastName': lastNameController.text,
+          'street': streetController.text,
+          'building': buildingController.text,
+          'floor': floorController.text,
+          'apartmentUnit': apartmentUnitController.text,
+          'additionalAddress': addressController.text,
+          'phone': phoneController.text,
+          'cellPhone': cellPhoneController.text,
+          'comment': commentController.text,
+          'email': emailController.text,
+          'password': password,
+          'neighbourId':neighbourId,
+          'neighbourhood':neighbour,
+          'classification':_classification==null?"No Classification":_classification
+        }).then((value) {
+          pr.close();
+          Navigator.pop(context);
+        }).onError((error, stackTrace){
+          final snackBar = SnackBar(content: Text("Database Error"));
+          ScaffoldMessenger.of(context).showSnackBar(snackBar);
         });
-      }).catchError((onError){
-        pr.close();
-        print(onError.toString());
       });
     } on FirebaseAuthException catch (e) {
-      pr.close();
       if (e.code == 'weak-password') {
+        pr.close();
         print('The password provided is too weak.');
-
       } else if (e.code == 'email-already-in-use') {
-
+        pr.close();
+        print('The account already exists for that email.');
       }
     } catch (e) {
+      print(e);
       pr.close();
-      print(e.toString());
     }
-
-
+    pr.close();
     await app.delete();
+
   }
 
 

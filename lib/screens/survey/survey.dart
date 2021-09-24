@@ -27,6 +27,29 @@ class Survey extends StatefulWidget {
 
 class _SurveyState extends State<Survey> {
 
+  String? neighbourId;
+
+  getUserData()async{
+    User user=FirebaseAuth.instance.currentUser!;
+    FirebaseFirestore.instance
+        .collection('boardmember')
+        .doc(user.uid)
+        .get()
+        .then((DocumentSnapshot documentSnapshot) {
+      if (documentSnapshot.exists) {
+        Map<String, dynamic> data = documentSnapshot.data() as Map<String, dynamic>;
+        neighbourId=data['neighbourId'];
+      }
+    });
+
+  }
+
+
+
+  @override
+  void initState() {
+    getUserData();
+  }
 
 
 
@@ -265,6 +288,7 @@ class _SurveyState extends State<Survey> {
                                     'choices': choices,
                                     'isMCQ': !isAnswer!,
                                     'attempts': "0",
+                                    'neighbourId': neighbourId,
                                   }).then((value) {
                                     pr.close();
                                     print("added");

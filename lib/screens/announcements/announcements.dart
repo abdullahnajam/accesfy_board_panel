@@ -2,6 +2,7 @@ import 'dart:html';
 
 import 'package:accessify/models/announcement/announcement_model.dart';
 import 'package:accessify/models/generate_password.dart';
+import 'package:accessify/models/home/homeowner.dart';
 import 'package:accessify/responsive.dart';
 import 'package:accessify/components/announcement_list.dart';
 import 'package:accessify/components/header.dart';
@@ -26,7 +27,28 @@ class Announcements extends StatefulWidget {
 class _AnnouncementsState extends State<Announcements> {
 
 
+  String? neighbourId;
 
+  getUserData()async{
+    User user=FirebaseAuth.instance.currentUser!;
+    FirebaseFirestore.instance
+        .collection('boardmember')
+        .doc(user.uid)
+        .get()
+        .then((DocumentSnapshot documentSnapshot) {
+      if (documentSnapshot.exists) {
+        Map<String, dynamic> data = documentSnapshot.data() as Map<String, dynamic>;
+        neighbourId=data['neighbourId'];
+      }
+    });
+
+  }
+
+
+  @override
+  void initState() {
+    getUserData();
+  }
 
   registerAnnouncement(AnnouncmentModel model) async{
     print("rr");
@@ -40,6 +62,7 @@ class _AnnouncementsState extends State<Announcements> {
       'photo': model.photo,
       'expDate': model.expDate,
       'neverExpire': model.neverExpire,
+      'neighbourId':neighbourId,
     }).then((value) {
       pr.close();
       print("added");
@@ -51,9 +74,10 @@ class _AnnouncementsState extends State<Announcements> {
     String imageUrl="";
     fb.UploadTask? _uploadTask;
     Uri imageUri;
+    bool imageUploading=false;
     bool? neverExpire=true;
     List<bool> audience=[false,false,false];
-    bool imageUploading=false;
+
 
     var expDateController=TextEditingController();
     DateTime? picked;

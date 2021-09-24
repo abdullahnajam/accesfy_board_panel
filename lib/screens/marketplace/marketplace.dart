@@ -37,7 +37,32 @@ class _MarketPlaceState extends State<MarketPlace> {
 
 
 
+  String? neighbourId;
+  bool isLoading=false;
 
+  getUserData()async{
+    User user=FirebaseAuth.instance.currentUser!;
+    FirebaseFirestore.instance
+        .collection('boardmember')
+        .doc(user.uid)
+        .get()
+        .then((DocumentSnapshot documentSnapshot) {
+      if (documentSnapshot.exists) {
+        Map<String, dynamic> data = documentSnapshot.data() as Map<String, dynamic>;
+        neighbourId=data['neighbourId'];
+        setState(() {
+          isLoading=true;
+        });
+      }
+    });
+
+  }
+
+
+  @override
+  void initState() {
+    getUserData();
+  }
 
   addMarketPlaceClassification(String classification) async{
     final ProgressDialog pr = ProgressDialog(context: context);
