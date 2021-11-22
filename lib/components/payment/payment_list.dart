@@ -1,24 +1,28 @@
 import 'package:accessify/models/home/homeowner.dart';
+import 'package:accessify/models/payment_model.dart';
 
 import 'package:accessify/screens/navigators/main_screen.dart';
+import 'package:accessify/screens/navigators/payment_screen.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data_table_2/data_table_2.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:intl/intl.dart';
 import 'package:sn_progress_dialog/progress_dialog.dart';
 
 import '../../../../constants.dart';
 
-class ResidentList extends StatefulWidget {
-  const ResidentList({Key? key}) : super(key: key);
+class PaymentList extends StatefulWidget {
+  const PaymentList({Key? key}) : super(key: key);
 
   @override
-  _ResidentListState createState() => _ResidentListState();
+  _PaymentListState createState() => _PaymentListState();
 }
 
 
-class _ResidentListState extends State<ResidentList> {
+class _PaymentListState extends State<PaymentList> {
 
 
 
@@ -35,11 +39,12 @@ class _ResidentListState extends State<ResidentList> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Home Owners",
+            "Payments",
             style: Theme.of(context).textTheme.subtitle1,
           ),
           StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance.collection('homeowner').snapshots(),
+            stream: FirebaseFirestore.instance.collection('payment')
+                .snapshots(),
             builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (snapshot.hasError) {
                 return Text('Something went wrong');
@@ -57,7 +62,7 @@ class _ResidentListState extends State<ResidentList> {
                   margin: EdgeInsets.all(20),
                   padding: EdgeInsets.all(80),
                   alignment: Alignment.center,
-                  child: Text("No Home Owner is registered"),
+                  child: Text("No payments generated"),
                 );
               }
               print("size ${snapshot.data!.size}");
@@ -70,16 +75,25 @@ class _ResidentListState extends State<ResidentList> {
                   minWidth: 600,
                   columns: [
                     DataColumn(
-                      label: Text("Name"),
+                      label: Text("User"),
                     ),
                     DataColumn(
-                      label: Text("Email"),
+                      label: Text("Concept"),
                     ),
 
                     DataColumn(
-                      label: Text("Phone"),
+                      label: Text("Amount"),
                     ),
 
+                    DataColumn(
+                      label: Text("Date"),
+                    ),
+                    DataColumn(
+                      label: Text("Expiration"),
+                    ),
+                    DataColumn(
+                      label: Text("Status"),
+                    ),
                     DataColumn(
                       label: Text("Actions"),
                     ),
@@ -139,7 +153,7 @@ updateHomeOwner(String id,String? classification,BuildContext context) async{
   });
 }
 
-Future<void> _showInfoHomeOwnerDailog(HomeOwnerModel model,BuildContext context) async {
+Future<void> _showInfoDialog(PaymentModel model,BuildContext context) async {
   final _formKey = GlobalKey<FormState>();
   return showDialog<void>(
     context: context,
@@ -174,7 +188,7 @@ Future<void> _showInfoHomeOwnerDailog(HomeOwnerModel model,BuildContext context)
                       alignment: Alignment.center,
                       child: Container(
                         margin: EdgeInsets.all(10),
-                        child: Text("Home Owner Information",textAlign: TextAlign.center,style: Theme.of(context).textTheme.headline5!.apply(color: secondaryColor),),
+                        child: Text("Payment Information",textAlign: TextAlign.center,style: Theme.of(context).textTheme.headline5!.apply(color: secondaryColor),),
                       ),
                     ),
                     Align(
@@ -194,28 +208,29 @@ Future<void> _showInfoHomeOwnerDailog(HomeOwnerModel model,BuildContext context)
                   child: ListView(
                     children: [
                       Text(
-                        "${model.firstName} ${model.lastName}",
+                        "${model.concept}",
                         style: Theme.of(context).textTheme.headline6!.apply(color: Colors.black),
                       ),
                       Text(
-                        model.email,
+                        model.name,
                         style: Theme.of(context).textTheme.bodyText2!.apply(color: Colors.grey[600]),
                       ),
                       SizedBox(height: MediaQuery.of(context).size.height*0.05,),
+
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.streetview,color: Colors.grey[600],size: 20,),
+                              Icon(Icons.place,color: Colors.grey[600],size: 20,),
                               Text(
-                                "   Street",
+                                "   Address",
                                 style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.grey[600]),
                               ),
                             ],
                           ),
                           Text(
-                            "Street ${model.street}",
+                            "${model.address}",
                             style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.black),
                           ),
                         ],
@@ -226,91 +241,15 @@ Future<void> _showInfoHomeOwnerDailog(HomeOwnerModel model,BuildContext context)
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.apartment,color: Colors.grey[600],size: 20,),
+                              Icon(Icons.calendar_today,color: Colors.grey[600],size: 20,),
                               Text(
-                                "   Building",
+                                "   Date",
                                 style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.grey[600]),
                               ),
                             ],
                           ),
                           Text(
-                            "Building ${model.building}",
-                            style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.black),
-                          ),
-                        ],
-                      ),
-                      Divider(color: Colors.grey[300],),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(Icons.elevator,color: Colors.grey[600],size: 20,),
-                              Text(
-                                "   Floor",
-                                style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.grey[600]),
-                              ),
-                            ],
-                          ),
-                          Text(
-                            "Floor ${model.street}",
-                            style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.black),
-                          ),
-                        ],
-                      ),
-                      Divider(color: Colors.grey[300],),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(Icons.home_work_outlined,color: Colors.grey[600],size: 20,),
-                              Text(
-                                "   Apartment Unit",
-                                style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.grey[600]),
-                              ),
-                            ],
-                          ),
-                          Text(
-                            "Apartment ${model.street}",
-                            style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.black),
-                          ),
-                        ],
-                      ),
-                      Divider(color: Colors.grey[300],),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(Icons.password,color: Colors.grey[600],size: 20,),
-                              Text(
-                                "   Password",
-                                style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.grey[600]),
-                              ),
-                            ],
-                          ),
-                          Text(
-                            "${model.password}",
-                            style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.black),
-                          ),
-                        ],
-                      ),
-                      Divider(color: Colors.grey[300],),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(Icons.phone,color: Colors.grey[600],size: 20,),
-                              Text(
-                                "   Phone",
-                                style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.grey[600]),
-                              ),
-                            ],
-                          ),
-                          Text(
-                            "${model.phone}",
+                            "${model.month} - ${model.year}",
                             style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.black),
                           ),
                         ],
@@ -322,15 +261,15 @@ Future<void> _showInfoHomeOwnerDailog(HomeOwnerModel model,BuildContext context)
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.phone_android,color: Colors.grey[600],size: 20,),
+                              Icon(Icons.list_alt,color: Colors.grey[600],size: 20,),
                               Text(
-                                "   Cell Phone",
+                                "   Invoice Number",
                                 style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.grey[600]),
                               ),
                             ],
                           ),
                           Text(
-                            "${model.cellPhone}",
+                            "${model.invoiceNumber}",
                             style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.black),
                           ),
                         ],
@@ -341,37 +280,80 @@ Future<void> _showInfoHomeOwnerDailog(HomeOwnerModel model,BuildContext context)
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.category_outlined,color: Colors.grey[600],size: 20,),
+                              Icon(Icons.monetization_on,color: Colors.grey[600],size: 20,),
                               Text(
-                                "   Classification",
+                                "   Amount",
                                 style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.grey[600]),
                               ),
                             ],
                           ),
                           Text(
-                            "${model.classification}",
+                            "${model.amount}",
                             style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.black),
                           ),
                         ],
                       ),
-                      SizedBox(height: MediaQuery.of(context).size.height*0.05,),
-                      Text(
-                        "Additional Address Information",
-                        style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
+                      Divider(color: Colors.grey[300],),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.timer_off,color: Colors.grey[600],size: 20,),
+                              Text(
+                                "   Expiration Date",
+                                style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.grey[600]),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            "${model.expiration}",
+                            style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.black),
+                          ),
+                        ],
                       ),
-                      Text(
-                        model.additionalAddress,
-                        style: Theme.of(context).textTheme.bodyText2!.apply(color: Colors.grey[600]),
+                      Divider(color: Colors.grey[300],),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.event,color: Colors.grey[600],size: 20,),
+                              Text(
+                                "   Submission Date",
+                                style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.grey[600]),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            "${model.submissionDate}",
+                            style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.black),
+                          ),
+                        ],
                       ),
-                      SizedBox(height: MediaQuery.of(context).size.height*0.015,),
-                      Text(
-                        "Comments",
-                        style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
+                      Divider(color: Colors.grey[300],),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.image,color: Colors.grey[600],size: 20,),
+                              Text(
+                                "   Proof",
+                                style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.grey[600]),
+                              ),
+                            ],
+                          ),
+                          if(model.proofUrl=='none')
+                          Text(
+                            "${model.proofUrl}",
+                            style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.black),
+                          )
+                          else
+                            Image.network(model.proofUrl,height: 50,width: 50,)
+                        ],
                       ),
-                      Text(
-                        model.comment,
-                        style: Theme.of(context).textTheme.bodyText2!.apply(color: Colors.grey[600]),
-                      ),
+
                     ],
                   ),
                 )
@@ -1034,30 +1016,115 @@ Future<void> _showEditHomeOwnerDailog(HomeOwnerModel model,BuildContext context,
   );
 }
 
+Future<void> changeStatus(PaymentModel model,BuildContext context){
+  return showDialog<void>(
+    context: context,
+    barrierDismissible: true, // user must tap button!
+    builder: (BuildContext context) {
+      return Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: const BorderRadius.all(
+            Radius.circular(10.0),
+          ),
+        ),
+        insetAnimationDuration: const Duration(seconds: 1),
+        insetAnimationCurve: Curves.fastOutSlowIn,
+        elevation: 2,
+
+        child: Container(
+          padding: EdgeInsets.all(20),
+          width: MediaQuery.of(context).size.width*0.3,
+          decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10)
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Stack(
+                children: [
+                  Align(
+                    alignment: Alignment.center,
+                    child: Container(
+                      margin: EdgeInsets.all(10),
+                      child: Text("Change Status",textAlign: TextAlign.center,style: Theme.of(context).textTheme.headline5!.apply(color: secondaryColor),),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      margin: EdgeInsets.all(10),
+                      child: IconButton(
+                        icon: Icon(Icons.close,color: Colors.grey,),
+                        onPressed: ()=>Navigator.pop(context),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+
+              ListTile(
+                onTap: (){
+                  FirebaseFirestore.instance.collection('payment').doc(model.id).update({
+                    'status': "Pending",
+                  }).then((value) => Navigator.pop(context));
+                },
+                title: Text("Pending",style: TextStyle(color: Colors.black),),
+              ),
+              ListTile(
+                onTap: (){
+                  FirebaseFirestore.instance.collection('payment').doc(model.id).update({
+                    'status': "To Authorize",
+                  }).then((value) => Navigator.pop(context));
+                },
+                title: Text("To Authorize",style: TextStyle(color: Colors.black)),
+              ),
+              ListTile(
+                onTap: (){
+                  FirebaseFirestore.instance.collection('payment').doc(model.id).update({
+                    'status': "Authorized",
+                  }).then((value) => Navigator.pop(context));
+                },
+                title: Text("Authorized",style: TextStyle(color: Colors.black)),
+              ),
+              SizedBox(height: 15,),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
 DataRow _buildListItem(BuildContext context, DocumentSnapshot data) {
-  final model = HomeOwnerModel.fromSnapshot(data);
+  final model = PaymentModel.fromSnapshot(data);
   return DataRow(
       onSelectChanged: (newValue) {
         print('row pressed');
-        _showInfoHomeOwnerDailog(model, context);
+        _showInfoDialog(model, context);
+
       },
       cells: [
-    DataCell(Text("${model.firstName} ${model.lastName}")),
-    DataCell(Text(model.email)),
-    DataCell(Text(model.phone)),
+    DataCell(Text("${model.name}")),
+    DataCell(Text(model.concept)),
+    DataCell(Text(model.amount.toString())),
+        DataCell(Text("${model.month} ${model.year}")),
+        DataCell(Text(model.expiration)),
+        DataCell(Text(model.status),onTap: (){
+          changeStatus(model, context);
+        }),
+
 
     DataCell(Row(
       children: [
-        Container(
+        /*Container(
           padding: EdgeInsets.all(10),
           child: IconButton(
             icon: Icon(Icons.edit,color: Colors.white,),
             onPressed: (){
-              String? _classification=model.classification;
-              _showEditHomeOwnerDailog(model, context,_classification);
+
             },
           ),
-        ),
+        ),*/
         Container(
           padding: EdgeInsets.all(10),
           child: IconButton(
@@ -1069,14 +1136,14 @@ DataRow _buildListItem(BuildContext context, DocumentSnapshot data) {
                 dialogType: DialogType.QUESTION,
                 animType: AnimType.BOTTOMSLIDE,
                 dialogBackgroundColor: secondaryColor,
-                title: 'Delete Home Owner',
+                title: 'Delete Payment',
                 desc: 'Are you sure you want to delete this record?',
                 btnCancelOnPress: () {
-                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => MainScreen()));
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => PaymentScreen()));
                 },
                 btnOkOnPress: () {
-                  FirebaseFirestore.instance.collection('homeowner').doc(model.id).delete().then((value) =>
-                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => MainScreen())));
+                  FirebaseFirestore.instance.collection('payment').doc(model.id).delete().then((value) =>
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => PaymentScreen())));
                 },
               )..show();
               

@@ -3,12 +3,17 @@ import 'package:accessify/screens/access_control/access_control_queue.dart';
 import 'package:accessify/screens/dashboard/resident.dart';
 import 'package:accessify/screens/navigators/access_screen.dart';
 import 'package:accessify/screens/navigators/annoucement_screen.dart';
+import 'package:accessify/screens/navigators/guard_screen.dart';
 import 'package:accessify/screens/navigators/incident_screen.dart';
 import 'package:accessify/screens/navigators/inventory_screen.dart';
 import 'package:accessify/screens/navigators/main_screen.dart';
 import 'package:accessify/screens/navigators/marketplace_screen.dart';
+import 'package:accessify/screens/navigators/payment_screen.dart';
 import 'package:accessify/screens/navigators/reservation_screen.dart';
 import 'package:accessify/screens/navigators/survey_screen.dart';
+import 'package:accessify/signin.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
@@ -25,8 +30,32 @@ class SideMenu extends StatelessWidget {
         color: bgColor,
         child:ListView(
           children: [
-            DrawerHeader(
-              child: Image.asset("assets/images/logo.png"),
+            FutureBuilder<DocumentSnapshot>(
+              future:  FirebaseFirestore.instance.collection('boardmember').doc(FirebaseAuth.instance.currentUser!.uid).get(),
+              builder:
+                  (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+
+                if (snapshot.hasError) {
+                  return Text("Something went wrong");
+                }
+
+                if (snapshot.hasData && !snapshot.data!.exists) {
+                  return DrawerHeader(
+                    child: Image.asset("assets/images/logo.png"),
+                  );
+                }
+
+                if (snapshot.connectionState == ConnectionState.done) {
+                  Map<String, dynamic> data = snapshot.data!.data() as Map<String, dynamic>;
+                  return DrawerHeader(
+                    child: Image.network(data['neighbourLogo']),
+                  );
+                }
+
+                return DrawerHeader(
+                  child: Image.asset("assets/images/logo.png"),
+                );
+              },
             ),
             DrawerListTile(
               title: "Residents",
@@ -36,7 +65,15 @@ class SideMenu extends StatelessWidget {
 
               },
             ),
+
             DrawerListTile(
+              title: "Guards",
+              svgSrc: "assets/icons/guard.png",
+              press: () {
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => GuardScreen()));
+
+              },
+            ),            DrawerListTile(
               title: "Access Control",
               svgSrc: "assets/icons/access.png",
               press: () {
@@ -46,7 +83,10 @@ class SideMenu extends StatelessWidget {
             DrawerListTile(
               title: "Payments",
               svgSrc: "assets/icons/payment.png",
-              press: () {},
+              press: () {
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => PaymentScreen()));
+
+              },
             ),
             DrawerListTile(
               title: "Reservation",
@@ -89,6 +129,16 @@ class SideMenu extends StatelessWidget {
               svgSrc: "assets/icons/market.png",
               press: () {
                 Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => MarketPlaceScreen()));
+              },
+            ),
+            DrawerListTile(
+              title: "Logout",
+              svgSrc: "assets/icons/logout.png",
+              press: () async{
+                await FirebaseAuth.instance.signOut().whenComplete((){
+                  Navigator.pushReplacement(
+                      context, MaterialPageRoute(builder: (BuildContext context) => SignIn()));
+                });
               },
             ),
 

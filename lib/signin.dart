@@ -39,7 +39,7 @@ class _SignInState extends State<SignIn> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                child: Text("Sign in to Hammam Alsham",style: TextStyle(fontSize: 20,fontWeight: FontWeight.w900,color: Colors.white),),
+                child: Text("Sign in to Accesfy",style: TextStyle(fontSize: 20,fontWeight: FontWeight.w900,color: Colors.white),),
               ),
               SizedBox(height: 20,),
               TextFormField(
@@ -159,13 +159,11 @@ class _SignInState extends State<SignIn> {
           :
 
       Container(
-        height: height*0.5,
         alignment: Alignment.center,
         child: Container(
           padding: EdgeInsets.all(defaultPadding),
           color: Colors.white,
-          width: width*0.28,
-          height: height*0.2,
+          width: width*0.5,
           child: Form(
             key: _formKey,
             child: Column(

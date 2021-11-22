@@ -86,6 +86,7 @@ class _ShowReservationListState extends State<ShowReservationList> {
               return new SizedBox(
                 width: double.infinity,
                 child: DataTable2(
+                  showCheckboxColumn: false,
                     columnSpacing: defaultPadding,
                     minWidth: 600,
                     columns: [
@@ -200,11 +201,187 @@ Future<void> _showRejectedDialog(String docId,BuildContext context) async {
   );
 }
 
+Future<void> _showInfoDialog(ReservationModel model,BuildContext context) async {
+  final _formKey = GlobalKey<FormState>();
+  return showDialog<void>(
+    context: context,
+    barrierDismissible: true, // user must tap button!
+    builder: (BuildContext context) {
+      return Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: const BorderRadius.all(
+            Radius.circular(10.0),
+          ),
+        ),
+        insetAnimationDuration: const Duration(seconds: 1),
+        insetAnimationCurve: Curves.fastOutSlowIn,
+        elevation: 2,
 
+        child: Container(
+          padding: EdgeInsets.all(20),
+          height: MediaQuery.of(context).size.height*0.8,
+          width: MediaQuery.of(context).size.width*0.5,
+          decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10)
+          ),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Stack(
+                  children: [
+                    Align(
+                      alignment: Alignment.center,
+                      child: Container(
+                        margin: EdgeInsets.all(10),
+                        child: Text("Reservation Information",textAlign: TextAlign.center,style: Theme.of(context).textTheme.headline5!.apply(color: secondaryColor),),
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Container(
+                        margin: EdgeInsets.all(10),
+                        child: IconButton(
+                          icon: Icon(Icons.close,color: Colors.grey,),
+                          onPressed: ()=>Navigator.pop(context),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+
+                Expanded(
+                  child: ListView(
+                    children: [
+                      FutureBuilder<DocumentSnapshot>(
+                        future:  FirebaseFirestore.instance.collection('homeowner').doc(model.userId).get(),
+                        builder:
+                            (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+
+                          if (snapshot.hasError) {
+                            return Text("Something went wrong");
+                          }
+
+                          if (snapshot.hasData && !snapshot.data!.exists) {
+                            return Text("");
+                          }
+
+                          if (snapshot.connectionState == ConnectionState.done) {
+                            Map<String, dynamic> data = snapshot.data!.data() as Map<String, dynamic>;
+                            return Text(
+                              "${data['firstName']} ${data['lastName']}",
+                              style: Theme.of(context).textTheme.headline6!.apply(color: Colors.black),
+                            );
+                          }
+
+                          return Text("-");
+                        },
+                      ),
+                      Text(
+                        model.hourStart,
+                        style: Theme.of(context).textTheme.bodyText2!.apply(color: Colors.grey[600]),
+                      ),
+                      SizedBox(height: MediaQuery.of(context).size.height*0.05,),
+
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.apartment,color: Colors.grey[600],size: 20,),
+                              Text(
+                                "   Facility",
+                                style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.grey[600]),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            "${model.facilityName}",
+                            style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.black),
+                          ),
+                        ],
+                      ),
+                      Divider(color: Colors.grey[300],),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.people,color: Colors.grey[600],size: 20,),
+                              Text(
+                                "   Total Guests",
+                                style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.grey[600]),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            "${model.totalGuests}",
+                            style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.black),
+                          ),
+                        ],
+                      ),
+
+                      Divider(color: Colors.grey[300],),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.calendar_today,color: Colors.grey[600],size: 20,),
+                              Text(
+                                "   Date",
+                                style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.grey[600]),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            "${model.date}",
+                            style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.black),
+                          ),
+                        ],
+                      ),
+                      Divider(color: Colors.grey[300],),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.qr_code,color: Colors.grey[600],size: 20,),
+                              Text(
+                                "   QR Code",
+                                style: Theme.of(context).textTheme.subtitle2!.apply(color: Colors.grey[600]),
+                              ),
+                            ],
+                          ),
+
+                            Image.network(model.qr,height: 50,width: 50,)
+                        ],
+                      ),
+
+                    ],
+                  ),
+                )
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
 DataRow _buildListItem(BuildContext context, DocumentSnapshot data) {
   final model = ReservationModel.fromSnapshot(data);
 
-  return DataRow(cells: [
+  return DataRow(
+      onSelectChanged: (newValue) {
+        print('row pressed');
+        _showInfoDialog(model, context);
+
+      },
+      cells: [
+
 
     DataCell(Text(model.date)),
     DataCell(Text(model.facilityName)),

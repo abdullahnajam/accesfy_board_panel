@@ -1,5 +1,6 @@
 import 'dart:html';
 
+import 'package:accessify/components/service_list_sidebar.dart';
 import 'package:accessify/models/announcement/announcement_model.dart';
 import 'package:accessify/models/generate_password.dart';
 import 'package:accessify/models/home/homeowner.dart';
@@ -546,11 +547,16 @@ class _AnnouncementsState extends State<Announcements> {
                       AnnouncementList(),
                       if (Responsive.isMobile(context))
                         SizedBox(height: defaultPadding),
+                      if (Responsive.isMobile(context)) ServiceListSideBar(),
                     ],
                   ),
                 ),
                 if (!Responsive.isMobile(context))
-                  SizedBox(width: defaultPadding),
+                  SizedBox(width: defaultPadding), if (!Responsive.isMobile(context))
+                  Expanded(
+                    flex: 2,
+                    child: ServiceListSideBar(),
+                  ),
 
               ],
             )

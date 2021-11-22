@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class GuardModel{
-  String id,firstName,lastName,photoId,companyName,phone,supervisor,email;
+  String id,firstName,lastName,photoId,companyName,phone,supervisor,email,password;
 
   GuardModel(this.id, this.firstName, this.lastName, this.photoId,
-      this.companyName, this.phone, this.supervisor, this.email);
+      this.companyName, this.phone, this.supervisor, this.email,this.password);
 
   GuardModel.fromMap(Map<String,dynamic> map,String key)
       : id=key,
@@ -14,6 +14,7 @@ class GuardModel{
         companyName = map['companyName'],
         phone = map['phone'],
         supervisor = map['supervisor'],
+        password = map['password'],
         email = map['email'];
 
 

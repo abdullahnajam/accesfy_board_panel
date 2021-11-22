@@ -1,3 +1,4 @@
+import 'package:accessify/components/amenity_sidebar.dart';
 import 'package:accessify/models/generate_password.dart';
 import 'package:accessify/responsive.dart';
 import 'package:accessify/components/access_log.dart';
@@ -39,11 +40,17 @@ class _AccessControlState extends State<AccessControl> {
                       AccessLog(),
                       if (Responsive.isMobile(context))
                         SizedBox(height: defaultPadding),
+                      if (Responsive.isMobile(context)) AmenitySideBar(),
                     ],
                   ),
                 ),
                 if (!Responsive.isMobile(context))
                   SizedBox(width: defaultPadding),
+                if (!Responsive.isMobile(context))
+                  Expanded(
+                    flex: 2,
+                    child: AmenitySideBar(),
+                  ),
 
               ],
             )
