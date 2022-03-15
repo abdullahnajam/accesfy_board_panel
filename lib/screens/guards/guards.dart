@@ -45,9 +45,11 @@ class _GuardsState extends State<Guards> {
           'phone': model.phone,
           'supervisor': model.supervisor,
           'email': model.email,
+          'token': "no token",
           'password': password,
           'neighbourId':neighbourId,
           'neighbourhood':neighbour,
+          'status':"Active"
         }).then((value) {
           pr.close();
           Navigator.pop(context);
@@ -551,7 +553,8 @@ class _GuardsState extends State<Guards> {
                                       companyController.text,
                                       phoneController.text,
                                       supervisorController.text,
-                                      emailController.text,""
+                                      emailController.text,"",
+                                      "Active"
                                   );
                                   registerGuard(model);
                                 }

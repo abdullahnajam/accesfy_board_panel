@@ -1,4 +1,5 @@
 import 'package:accessify/models/home/homeowner.dart';
+import 'package:accessify/provider/UserDataProvider.dart';
 
 import 'package:accessify/screens/navigators/main_screen.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
@@ -6,9 +7,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 import 'package:sn_progress_dialog/progress_dialog.dart';
 
 import '../../../../constants.dart';
+import '../../responsive.dart';
 
 class ResidentList extends StatefulWidget {
   const ResidentList({Key? key}) : super(key: key);
@@ -20,11 +23,12 @@ class ResidentList extends StatefulWidget {
 
 class _ResidentListState extends State<ResidentList> {
 
-
+  
 
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<UserDataProvider>(context, listen: false);
     return Container(
       padding: EdgeInsets.all(defaultPadding),
       decoration: BoxDecoration(
@@ -39,7 +43,8 @@ class _ResidentListState extends State<ResidentList> {
             style: Theme.of(context).textTheme.subtitle1,
           ),
           StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance.collection('homeowner').snapshots(),
+            stream: FirebaseFirestore.instance.collection('homeowner')
+                .where("neighbourId",isEqualTo:provider.boardMemberModel!.neighbourId).snapshots(),
             builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (snapshot.hasError) {
                 return Text('Something went wrong');
@@ -78,6 +83,9 @@ class _ResidentListState extends State<ResidentList> {
 
                     DataColumn(
                       label: Text("Phone"),
+                    ),
+                    DataColumn(
+                      label: Text("Status"),
                     ),
 
                     DataColumn(
@@ -385,6 +393,8 @@ Future<void> _showInfoHomeOwnerDailog(HomeOwnerModel model,BuildContext context)
 }
 
 Future<void> _showEditHomeOwnerDailog(HomeOwnerModel model,BuildContext context,String? _classification) async {
+  final provider = Provider.of<UserDataProvider>(context, listen: false);
+
   return showDialog<void>(
     context: context,
     barrierDismissible: true, // user must tap button!
@@ -660,7 +670,7 @@ Future<void> _showEditHomeOwnerDailog(HomeOwnerModel model,BuildContext context,
                                 style: Theme.of(context).textTheme.bodyText1!.apply(color: secondaryColor),
                               ),
                               StreamBuilder<QuerySnapshot>(
-                                  stream: FirebaseFirestore.instance.collection('classification').snapshots(),
+                                  stream: FirebaseFirestore.instance.collection('classification').where("neighbourId",isEqualTo:provider.boardMemberModel!.neighbourId).snapshots(),
                                   builder: (context, snapshot){
                                     if (!snapshot.hasData)
                                       return const Center(child: const CircularProgressIndicator(),);
@@ -1036,17 +1046,38 @@ Future<void> _showEditHomeOwnerDailog(HomeOwnerModel model,BuildContext context,
 
 DataRow _buildListItem(BuildContext context, DocumentSnapshot data) {
   final model = HomeOwnerModel.fromSnapshot(data);
+  var color=Colors.blue;
+  if(model.status=="Active"){
+    color=Colors.green;
+  }
+  else if(model.status=="Inactive"){
+    color=Colors.red;
+  }
+  else{
+
+  }
   return DataRow(
       onSelectChanged: (newValue) {
         print('row pressed');
         _showInfoHomeOwnerDailog(model, context);
       },
       cells: [
-    DataCell(Text("${model.firstName} ${model.lastName}")),
-    DataCell(Text(model.email)),
-    DataCell(Text(model.phone)),
+        DataCell(Text("${model.firstName} ${model.lastName}")),
+        DataCell(Text(model.email)),
+        DataCell(Text(model.phone)),
+        DataCell(
+          Container(
+            alignment: Alignment.center,
+            color: color,
+            margin: EdgeInsets.only(bottom: 5,top: 5),
+            child: Text(model.status),
+          ),
 
-    DataCell(Row(
+          onTap: (){
+            _showChangeStatusDialog(model, context);
+          }
+        ),
+        DataCell(Row(
       children: [
         Container(
           padding: EdgeInsets.all(10),
@@ -1058,35 +1089,190 @@ DataRow _buildListItem(BuildContext context, DocumentSnapshot data) {
             },
           ),
         ),
-        Container(
-          padding: EdgeInsets.all(10),
-          child: IconButton(
-            icon: Icon(Icons.delete_forever,color: Colors.white,),
-            onPressed: (){
-              AwesomeDialog(
-                width: MediaQuery.of(context).size.width*0.3,
-                context: context,
-                dialogType: DialogType.QUESTION,
-                animType: AnimType.BOTTOMSLIDE,
-                dialogBackgroundColor: secondaryColor,
-                title: 'Delete Home Owner',
-                desc: 'Are you sure you want to delete this record?',
-                btnCancelOnPress: () {
-                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => MainScreen()));
-                },
-                btnOkOnPress: () {
-                  FirebaseFirestore.instance.collection('homeowner').doc(model.id).delete().then((value) =>
-                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => MainScreen())));
-                },
-              )..show();
-              
-            },
-          ),
-        )
 
       ],
     )),
   ]);
+}
+Future<void> _showChangeStatusDialog(HomeOwnerModel model,BuildContext context) async {
+  return showDialog<void>(
+    context: context,
+    barrierDismissible: true, // user must tap button!
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: const BorderRadius.all(
+                Radius.circular(10.0),
+              ),
+            ),
+            insetAnimationDuration: const Duration(seconds: 1),
+            insetAnimationCurve: Curves.fastOutSlowIn,
+            elevation: 2,
+
+            child: Container(
+              padding: EdgeInsets.all(20),
+              height: MediaQuery.of(context).size.height*0.3,
+              width: MediaQuery.of(context).size.width*0.5,
+              decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10)
+              ),
+              child: ListView(
+                children: [
+                  Stack(
+                    children: [
+                      Align(
+                        alignment: Alignment.center,
+                        child: Container(
+                          margin: EdgeInsets.all(10),
+                          child: Text("Change Status",textAlign: TextAlign.center,style: Theme.of(context).textTheme.headline5!.apply(color: secondaryColor),),
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Container(
+                          margin: EdgeInsets.all(10),
+                          child: IconButton(
+                            icon: Icon(Icons.close,color: Colors.grey,),
+                            onPressed: ()=>Navigator.pop(context),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                  SizedBox(height: 10,),
+                  ListTile(
+                    onTap: (){
+                      var width;
+                      if(Responsive.isMobile(context)){
+                        width=MediaQuery.of(context).size.width*0.8;
+                      }
+                      else if(Responsive.isTablet(context)){
+                        width=MediaQuery.of(context).size.width*0.6;
+                      }
+                      else if(Responsive.isDesktop(context)){
+                        width=MediaQuery.of(context).size.width*0.3;
+                      }
+                      AwesomeDialog(
+                        width: width,
+                        context: context,
+                        dialogType: DialogType.QUESTION,
+                        animType: AnimType.BOTTOMSLIDE,
+                        dialogBackgroundColor: secondaryColor,
+                        title: 'Change Status',
+                        desc: 'Are you sure you want to change status?',
+                        btnCancelOnPress: () {
+                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => MainScreen()));
+                        },
+                        btnOkOnPress: () {
+                          FirebaseFirestore.instance.collection('homeowner').doc(model.id).update({
+                            'status':"Active"
+                          }).then((value) {
+                            Navigator.pop(context);
+                          }).onError((error, stackTrace) {
+                            var width;
+                            if(Responsive.isMobile(context)){
+                              width=MediaQuery.of(context).size.width*0.8;
+                            }
+                            else if(Responsive.isTablet(context)){
+                              width=MediaQuery.of(context).size.width*0.6;
+                            }
+                            else if(Responsive.isDesktop(context)){
+                              width=MediaQuery.of(context).size.width*0.3;
+                            }
+                            AwesomeDialog(
+                              width: width,
+                              context: context,
+                              dialogType: DialogType.ERROR,
+                              animType: AnimType.BOTTOMSLIDE,
+                              dialogBackgroundColor: secondaryColor,
+                              title: 'Error : Unable to change status',
+                              desc: '${error.toString()}',
+
+                              btnOkOnPress: () {
+                                Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => MainScreen()));
+
+                              },
+                            )..show();
+                          });
+                        },
+                      )..show();
+
+                    },
+                    title: Text("Active",style: TextStyle(color: Colors.black),),
+                  ),
+                  Divider(color: Colors.grey,),
+                  ListTile(
+                    onTap: (){
+                      var width;
+                      if(Responsive.isMobile(context)){
+                        width=MediaQuery.of(context).size.width*0.8;
+                      }
+                      else if(Responsive.isTablet(context)){
+                        width=MediaQuery.of(context).size.width*0.6;
+                      }
+                      else if(Responsive.isDesktop(context)){
+                        width=MediaQuery.of(context).size.width*0.3;
+                      }
+                      AwesomeDialog(
+                        width: width,
+                        context: context,
+                        dialogType: DialogType.QUESTION,
+                        animType: AnimType.BOTTOMSLIDE,
+                        dialogBackgroundColor: secondaryColor,
+                        title: 'Change Status',
+                        desc: 'Are you sure you want to change status?',
+                        btnCancelOnPress: () {
+                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => MainScreen()));
+                        },
+                        btnOkOnPress: () {
+                          FirebaseFirestore.instance.collection('homeowner').doc(model.id).update({
+                            'status':"Inactive"
+                          }).then((value) {
+                            Navigator.pop(context);
+                          }).onError((error, stackTrace) {
+                            var width;
+                            if(Responsive.isMobile(context)){
+                              width=MediaQuery.of(context).size.width*0.8;
+                            }
+                            else if(Responsive.isTablet(context)){
+                              width=MediaQuery.of(context).size.width*0.6;
+                            }
+                            else if(Responsive.isDesktop(context)){
+                              width=MediaQuery.of(context).size.width*0.3;
+                            }
+                            AwesomeDialog(
+                              width: width,
+                              context: context,
+                              dialogType: DialogType.ERROR,
+                              animType: AnimType.BOTTOMSLIDE,
+                              dialogBackgroundColor: secondaryColor,
+                              title: 'Error : Unable to change status',
+                              desc: '${error.toString()}',
+
+                              btnOkOnPress: () {
+                                Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => MainScreen()));
+
+                              },
+                            )..show();
+                          });
+                        },
+                      )..show();
+
+                    },
+                    title: Text("Inactive",style: TextStyle(color: Colors.black),),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
 }
 
 

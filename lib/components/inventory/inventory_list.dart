@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:accessify/models/home/homeowner.dart';
 import 'package:accessify/models/inventory/asset_model.dart';
+import 'package:accessify/provider/UserDataProvider.dart';
 import 'package:accessify/screens/navigators/inventory_screen.dart';
 
 import 'package:accessify/screens/navigators/main_screen.dart';
@@ -13,6 +14,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:sn_progress_dialog/progress_dialog.dart';
 
 import '../../../../constants.dart';
@@ -55,6 +57,7 @@ class _InventoryListState extends State<InventoryList> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<UserDataProvider>(context, listen: false);
     return isLoading?Container(
       padding: EdgeInsets.all(defaultPadding),
       decoration: BoxDecoration(
@@ -446,6 +449,7 @@ Future<void> _showInfoHomeOwnerDailog(AssetModel model,BuildContext context) asy
 
 Future<void> _showEditHomeOwnerDailog(AssetModel model,BuildContext context) async {
   descriptionController.text=model.description;
+  final provider = Provider.of<UserDataProvider>(context, listen: false);
   serialController.text=model.serial;
   datePurchasedController.text=model.datePurchased;
   maintenanceController.text=model.maintenanceSchedule;
@@ -966,7 +970,7 @@ Future<void> _showEditHomeOwnerDailog(AssetModel model,BuildContext context) asy
                                               child: Container(
                                                 width: MediaQuery.of(context).size.width*0.3,
                                                 child: StreamBuilder<QuerySnapshot>(
-                                                  stream: FirebaseFirestore.instance.collection('guard').snapshots(),
+                                                  stream: FirebaseFirestore.instance.collection('guard').where("neighbourId",isEqualTo:provider.boardMemberModel!.neighbourId).snapshots(),
                                                   builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                                                     if (snapshot.hasError) {
                                                       return Center(

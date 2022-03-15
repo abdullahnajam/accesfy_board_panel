@@ -34,6 +34,7 @@ dependencies:
   provider: ^5.0.0
   data_table_2: ^2.0.4
   sn_progress_dialog: ^1.0.1
+  month_picker_dialog: ^0.4.0
   flutter_animated_dialog: ^2.0.0
   awesome_dialog: ^2.1.0
   sweetalert: ^0.0.1

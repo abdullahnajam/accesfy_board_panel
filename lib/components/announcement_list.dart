@@ -226,7 +226,7 @@ Future<void> _showUpdateAnnoucementsDailog(AnnouncmentModel model,BuildContext c
             picked = await showDatePicker(
               context: context,
               initialDate: DateTime.now(), // Refer step 1
-              firstDate: DateTime(2000),
+              firstDate: DateTime.now(),
               lastDate: DateTime(2025),
             );
             if (picked != null && picked != selectedDate)

@@ -482,7 +482,7 @@ class _InventoryState extends State<Inventory> {
                                                 child: Container(
                                                   width: MediaQuery.of(context).size.width*0.3,
                                                   child: StreamBuilder<QuerySnapshot>(
-                                                    stream: FirebaseFirestore.instance.collection('guard').snapshots(),
+                                                    stream: FirebaseFirestore.instance.collection('guard').where("neighbourId",isEqualTo:neighbourId).snapshots(),
                                                     builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                                                       if (snapshot.hasError) {
                                                         return Center(
@@ -1209,7 +1209,7 @@ class _InventoryState extends State<Inventory> {
                                                 child: Container(
                                                   width: MediaQuery.of(context).size.width*0.3,
                                                   child: StreamBuilder<QuerySnapshot>(
-                                                    stream: FirebaseFirestore.instance.collection('guard').snapshots(),
+                                                    stream: FirebaseFirestore.instance.collection('guard').where("neighbourId",isEqualTo:neighbourId).snapshots(),
                                                     builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                                                       if (snapshot.hasError) {
                                                         return Center(

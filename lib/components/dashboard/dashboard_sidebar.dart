@@ -1,6 +1,7 @@
 import 'dart:html';
 import 'package:accessify/models/generate_password.dart';
 import 'package:accessify/models/home/guard_model.dart';
+import 'package:accessify/provider/UserDataProvider.dart';
 import 'package:accessify/screens/navigators/main_screen.dart';
 import 'package:advanced_datatable/datatable.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
@@ -9,6 +10,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase/firebase.dart' as fb;
+import 'package:provider/provider.dart';
 import 'package:sn_progress_dialog/progress_dialog.dart';
 import 'package:firebase_core/firebase_core.dart';
 import '../../../constants.dart';
@@ -28,6 +30,8 @@ class _DashboardSidebarState extends State<DashboardSidebar> {
     pr.show(max: 100, msg: "Adding");
     FirebaseFirestore.instance.collection('classification').add({
       'name': name,
+      'neighbourId':neighbourId,
+      'neighbourhood':neighbour,
     }).then((value) {
       pr.close();
       Navigator.pop(context);
@@ -200,6 +204,7 @@ class _DashboardSidebarState extends State<DashboardSidebar> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<UserDataProvider>(context, listen: false);
     return Container(
       padding: EdgeInsets.all(defaultPadding),
       decoration: BoxDecoration(
@@ -270,9 +275,10 @@ class _DashboardSidebarState extends State<DashboardSidebar> {
                     ],
                   ),
                   Container(
-                    height: MediaQuery.of(context).size.height*0.2,
+                    height: MediaQuery.of(context).size.height*0.7,
                     child: StreamBuilder<QuerySnapshot>(
-                      stream: FirebaseFirestore.instance.collection('classification').snapshots(),
+                      stream: FirebaseFirestore.instance.collection('classification')
+                          .where("neighbourId",isEqualTo:provider.boardMemberModel!.neighbourId).snapshots(),
                       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                         if (snapshot.hasError) {
                           return Center(

@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class HomeOwnerModel{
   String id,firstName,lastName,street,building,floor,apartmentUnit,additionalAddress,phone,cellPhone,email,comment,classification;
   String neighbourId,neighbourhood,password;
+  String status;
 
   HomeOwnerModel(
       this.id,
@@ -20,7 +21,8 @@ class HomeOwnerModel{
       this.classification,
       this.neighbourId,
       this.neighbourhood,
-      this.password);
+      this.password,
+      this.status);
 
   HomeOwnerModel.fromMap(Map<String,dynamic> map,String key)
       : id=key,
@@ -29,6 +31,7 @@ class HomeOwnerModel{
         street = map['street'],
         password = map['password'],
         building = map['building'],
+        status = map['status'],
         floor = map['floor'],
         apartmentUnit = map['apartmentUnit'],
         additionalAddress = map['additionalAddress'],

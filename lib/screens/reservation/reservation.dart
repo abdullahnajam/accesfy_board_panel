@@ -275,7 +275,7 @@ class _ShowReservationsState extends State<ShowReservations> {
                             "",
                             style: Theme.of(context).textTheme.subtitle1,
                           ),
-                          ElevatedButton.icon(
+                         /* ElevatedButton.icon(
                             style: TextButton.styleFrom(
                               padding: EdgeInsets.symmetric(
                                 horizontal: defaultPadding * 1.5,
@@ -288,24 +288,20 @@ class _ShowReservationsState extends State<ShowReservations> {
                             },
                             icon: Icon(Icons.add),
                             label: Text("Add Facility"),
-                          ),
+                          ),*/
                         ],
                       ),
                       SizedBox(height: defaultPadding),
                       ShowReservationList(),
                       if (Responsive.isMobile(context))
                         SizedBox(height: defaultPadding),
-                      if (Responsive.isMobile(context)) ReservationSidebar(),
+
                     ],
                   ),
                 ),
                 if (!Responsive.isMobile(context))
                   SizedBox(width: defaultPadding),
-                if (!Responsive.isMobile(context))
-                  Expanded(
-                    flex: 2,
-                    child: ReservationSidebar(),
-                  ),
+
 
               ],
             )

@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site": "boardpanel-v3",
+    "site": "boardpanel-v7",
     "public": "build/web",
     "ignore": [
       "firebase.json",

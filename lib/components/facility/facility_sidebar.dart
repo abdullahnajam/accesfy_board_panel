@@ -4,7 +4,7 @@ import 'package:accessify/models/home/guard_model.dart';
 import 'package:accessify/provider/UserDataProvider.dart';
 import 'package:accessify/screens/navigators/incident_screen.dart';
 import 'package:accessify/screens/navigators/main_screen.dart';
-import 'package:accessify/screens/navigators/marketplace_screen.dart';
+import 'package:accessify/screens/navigators/reservation_screen.dart';
 import 'package:advanced_datatable/datatable.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -17,14 +17,14 @@ import 'package:sn_progress_dialog/progress_dialog.dart';
 
 import '../../../constants.dart';
 
-class MarketPlaceSidebar extends StatefulWidget {
-  const MarketPlaceSidebar({Key? key}) : super(key: key);
+class AccessoriesSidebar extends StatefulWidget {
+  const AccessoriesSidebar({Key? key}) : super(key: key);
 
   @override
-  _MarketPlaceSidebarState createState() => _MarketPlaceSidebarState();
+  _AccessoriesSidebarState createState() => _AccessoriesSidebarState();
 }
 
-class _MarketPlaceSidebarState extends State<MarketPlaceSidebar> {
+class _AccessoriesSidebarState extends State<AccessoriesSidebar> {
 
 
   @override
@@ -40,7 +40,7 @@ class _MarketPlaceSidebarState extends State<MarketPlaceSidebar> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Classification",
+            "Accessories",
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w500,
@@ -52,9 +52,10 @@ class _MarketPlaceSidebarState extends State<MarketPlaceSidebar> {
               margin: EdgeInsets.only(top: defaultPadding),
               padding: EdgeInsets.all(defaultPadding),
               child: Container(
-                height: MediaQuery.of(context).size.height*0.2,
+                height: MediaQuery.of(context).size.height*0.7,
                 child: StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance.collection('classification_marketplace').where("neighbourId",isEqualTo:provider.boardMemberModel!.neighbourId).snapshots(),
+                  stream: FirebaseFirestore.instance.collection('accessories')
+                      .where("neighbourId",isEqualTo:provider.boardMemberModel!.neighbourId).snapshots(),
                   builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                     if (snapshot.hasError) {
                       return Center(
@@ -77,7 +78,7 @@ class _MarketPlaceSidebarState extends State<MarketPlaceSidebar> {
                       return Center(
                         child: Column(
                           children: [
-                            Text("No Classifications Added")
+                            Text("No Accessories Added")
 
                           ],
                         ),
@@ -94,6 +95,12 @@ class _MarketPlaceSidebarState extends State<MarketPlaceSidebar> {
                             child: InkWell(
                               child: Container(
                                 child: ListTile(
+                                  leading: CircleAvatar(
+                                    radius: 25,
+                                    backgroundImage: NetworkImage(data['image']),
+                                    backgroundColor: Colors.indigoAccent,
+                                    foregroundColor: Colors.white,
+                                  ),
                                   title: Text(data['name']),
                                   trailing: IconButton(
                                     icon: Icon(Icons.delete_forever,color: Colors.white,),
@@ -104,14 +111,14 @@ class _MarketPlaceSidebarState extends State<MarketPlaceSidebar> {
                                         context: context,
                                         dialogType: DialogType.QUESTION,
                                         animType: AnimType.BOTTOMSLIDE,
-                                        title: 'Delete Classification',
+                                        title: 'Delete Accessory',
                                         desc: 'Are you sure you want to delete this record?',
                                         btnCancelOnPress: () {
-                                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => MarketPlaceScreen()));
+                                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => ReservationScreen()));
                                         },
                                         btnOkOnPress: () {
-                                          FirebaseFirestore.instance.collection('classification_marketplace').doc(document.reference.id).delete().then((value) =>
-                                              Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => MarketPlaceScreen())));
+                                          FirebaseFirestore.instance.collection('accessories').doc(document.reference.id).delete().then((value) =>
+                                              Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => ReservationScreen())));
                                         },
                                       )..show();
                                     },

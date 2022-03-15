@@ -1,6 +1,8 @@
 import 'dart:html';
+import 'package:accessify/models/board_member_model.dart';
 import 'package:accessify/models/generate_password.dart';
 import 'package:accessify/models/home/guard_model.dart';
+import 'package:accessify/provider/UserDataProvider.dart';
 import 'package:accessify/screens/navigators/annoucement_screen.dart';
 import 'package:accessify/screens/navigators/incident_screen.dart';
 import 'package:accessify/screens/navigators/main_screen.dart';
@@ -12,6 +14,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase/firebase.dart' as fb;
+import 'package:provider/provider.dart';
 import 'package:sn_progress_dialog/progress_dialog.dart';
 
 import '../../../constants.dart';
@@ -28,13 +31,15 @@ class _ServiceListSideBarState extends State<ServiceListSideBar> {
   var serviceController=TextEditingController();
 
 
-  addService(String photo) async{
+  addService(String photo,BoardMemberModel model) async{
     print("rr");
     final ProgressDialog pr = ProgressDialog(context: context);
     pr.show(max: 100, msg: "Adding Service");
     FirebaseFirestore.instance.collection('services').add({
       'name': serviceController.text,
       'image': photo,
+      'neighbourId':model.neighbourId,
+      'neighbourhood':model.neighbourhoodName,
     }).then((value) {
       pr.close();
       print("added");
@@ -236,7 +241,8 @@ class _ServiceListSideBarState extends State<ServiceListSideBar> {
                       InkWell(
                         onTap: (){
                           print("tap");
-                          addService(imageUrl);
+                          final provider = Provider.of<UserDataProvider>(context, listen: false);
+                          addService(imageUrl,provider.boardMemberModel!);
                         },
                         child: Container(
                           height: 50,
@@ -257,6 +263,7 @@ class _ServiceListSideBarState extends State<ServiceListSideBar> {
   }
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<UserDataProvider>(context, listen: false);
     return Container(
       padding: EdgeInsets.all(defaultPadding),
       decoration: BoxDecoration(
@@ -292,7 +299,7 @@ class _ServiceListSideBarState extends State<ServiceListSideBar> {
               child: Container(
                 height: MediaQuery.of(context).size.height*0.2,
                 child: StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance.collection('services').snapshots(),
+                  stream: FirebaseFirestore.instance.collection('services').where("neighbourId",isEqualTo:provider.boardMemberModel!.neighbourId).snapshots(),
                   builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                     if (snapshot.hasError) {
                       return Center(

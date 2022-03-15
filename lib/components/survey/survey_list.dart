@@ -22,7 +22,6 @@ class SurveyList extends StatefulWidget {
 
 class _SurveyListState extends State<SurveyList> {
 
-
   String? neighbourId;
   bool isLoading=false;
 
@@ -312,7 +311,7 @@ Future<void> _showAttemptsDialog(SurveyModel model,BuildContext context) async {
 
                           return new Padding(
                               padding: const EdgeInsets.only(top: 1.0),
-                              child: Column(
+                              child: Row(
                                 children: [
                                   Text(data['name'],style: TextStyle(color: Colors.black),),
                                   data['isMCQ']?
@@ -426,7 +425,7 @@ DataRow _buildListItem(BuildContext context, DocumentSnapshot data) {
       },
       cells: [
     DataCell(Text("${model.question}",maxLines: 1,)),
-    DataCell(Text(model.attempts),onTap: (){_showAttemptsDialog(model,context);}),
+    DataCell(Text(model.attempts.length.toString()),onTap: (){_showAttemptsDialog(model,context);}),
     DataCell(
         Text("${model.status}"),
         onTap: (){

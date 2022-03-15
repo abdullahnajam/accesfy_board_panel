@@ -2,9 +2,11 @@ import 'dart:html';
 import 'package:accessify/models/generate_password.dart';
 import 'package:accessify/models/home/guard_model.dart';
 import 'package:accessify/models/inventory/supply_model.dart';
-import 'package:accessify/screens/navigators/access_screen.dart';
+import 'package:accessify/models/single_item_model.dart';
+import 'package:accessify/provider/UserDataProvider.dart';
 import 'package:accessify/screens/navigators/inventory_screen.dart';
 import 'package:accessify/screens/navigators/main_screen.dart';
+import 'package:accessify/screens/navigators/payment_screen.dart';
 import 'package:advanced_datatable/datatable.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -13,46 +15,50 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase/firebase.dart' as fb;
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:sn_progress_dialog/progress_dialog.dart';
 
 import '../../../constants.dart';
 
-class AmenitySideBar extends StatefulWidget {
-  const AmenitySideBar({Key? key}) : super(key: key);
+class ConceptList extends StatefulWidget {
+  const ConceptList({Key? key}) : super(key: key);
 
   @override
-  _AmenitySideBarState createState() => _AmenitySideBarState();
+  _ConceptListState createState() => _ConceptListState();
 }
 
-class _AmenitySideBarState extends State<AmenitySideBar> {
-  String? neighbourId;
-  bool isLoading=false;
+class _ConceptListState extends State<ConceptList> {
 
-  getUserData()async{
-    User user=FirebaseAuth.instance.currentUser!;
-    FirebaseFirestore.instance
-        .collection('boardmember')
-        .doc(user.uid)
-        .get()
-        .then((DocumentSnapshot documentSnapshot) {
-      if (documentSnapshot.exists) {
-        Map<String, dynamic> data = documentSnapshot.data() as Map<String, dynamic>;
-        neighbourId=data['neighbourId'];
-        setState(() {
-          isLoading=true;
-        });
-      }
+
+
+  updateSupply(SupplyModel model,BuildContext context) async{
+    final ProgressDialog pr = ProgressDialog(context: context);
+    print("guard ${model.id}");
+    pr.show(max: 100, msg: "Updating");
+    //description,datePurchased,stock,location,assignedTo,condition,inventoryFrequency,lastInventoryDate
+    FirebaseFirestore.instance.collection('inventory_supply').doc(model.id).update({
+      'description': model.description,
+      'datePurchased': model.datePurchased,
+      'stock': model.stock,
+      'location': model.location,
+      'assignedTo': model.assignedTo,
+      'guardId':model.guardId,
+      'condition': model.condition,
+      'inventoryFrequency': model.inventoryFrequency,
+      'lastInventoryDate': model.lastInventoryDate,
+
+
+    }).then((value) {
+      pr.close();
+      print("added");
+      Navigator.pop(context);
     });
-
   }
 
+  var _conceptController=TextEditingController();
 
-  @override
-  void initState() {
-    getUserData();
-  }
-  var _nameController=TextEditingController();
-  Future<void> _showAddClassificationDailog() async {
+
+  Future<void> _showAddConceptDialog() async {
     final _formKey = GlobalKey<FormState>();
     return showDialog(
       context: context,
@@ -72,7 +78,7 @@ class _AmenitySideBarState extends State<AmenitySideBar> {
 
               child: Container(
                 padding: EdgeInsets.all(20),
-                height: MediaQuery.of(context).size.height*0.33,
+                height: MediaQuery.of(context).size.height*0.3,
                 width: MediaQuery.of(context).size.width*0.4,
                 decoration: BoxDecoration(
                     color: Colors.white,
@@ -89,7 +95,7 @@ class _AmenitySideBarState extends State<AmenitySideBar> {
                             alignment: Alignment.center,
                             child: Container(
                               margin: EdgeInsets.all(10),
-                              child: Text("Add Amenity",textAlign: TextAlign.center,style: Theme.of(context).textTheme.headline5!.apply(color: secondaryColor),),
+                              child: Text("Add Concept",textAlign: TextAlign.center,style: Theme.of(context).textTheme.headline5!.apply(color: secondaryColor),),
                             ),
                           ),
                           Align(
@@ -113,11 +119,11 @@ class _AmenitySideBarState extends State<AmenitySideBar> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  "Amenity",
+                                  "Concept",
                                   style: Theme.of(context).textTheme.bodyText1!.apply(color: secondaryColor),
                                 ),
                                 TextFormField(
-                                  controller: _nameController,
+                                  controller: _conceptController,
                                   style: TextStyle(color: Colors.black),
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
@@ -147,7 +153,7 @@ class _AmenitySideBarState extends State<AmenitySideBar> {
                                         width: 0.5,
                                       ),
                                     ),
-                                    hintText: "",
+                                    hintText: "Rent",
                                     floatingLabelBehavior: FloatingLabelBehavior.always,
                                   ),
                                 ),
@@ -156,26 +162,26 @@ class _AmenitySideBarState extends State<AmenitySideBar> {
                             SizedBox(height: 15,),
                             InkWell(
                               onTap: (){
-                                print("rr");
+                                final provider = Provider.of<UserDataProvider>(context, listen: false);
+
                                 final ProgressDialog pr = ProgressDialog(context: context);
                                 pr.show(max: 100, msg: "Adding");
-                                FirebaseFirestore.instance.collection('amenities').add({
-                                  'name': _nameController.text,
-                                  'neighbourId':neighbourId,
+                                FirebaseFirestore.instance.collection('concepts').add({
+                                  'name': _conceptController.text,
+                                  'neighbourId':provider.boardMemberModel!.neighbourId,
+                                  'neighbourhood':provider.boardMemberModel!.neighbourhoodName,
                                 }).then((value) {
                                   pr.close();
                                   Navigator.pop(context);
-
                                 }).onError((error, stackTrace){
                                   pr.close();
-                                  print("error ${error.toString()}");
                                 });
                               },
                               child: Container(
                                 height: 50,
                                 color: secondaryColor,
                                 alignment: Alignment.center,
-                                child: Text("Add",style: Theme.of(context).textTheme.button!.apply(color: Colors.white),),
+                                child: Text("Add Payment Concept",style: Theme.of(context).textTheme.button!.apply(color: Colors.white),),
                               ),
                             )
                           ],
@@ -193,7 +199,8 @@ class _AmenitySideBarState extends State<AmenitySideBar> {
   }
   @override
   Widget build(BuildContext context) {
-    return isLoading?Container(
+    final provider = Provider.of<UserDataProvider>(context, listen: false);
+    return Container(
       padding: EdgeInsets.all(defaultPadding),
       decoration: BoxDecoration(
         color: secondaryColor,
@@ -202,31 +209,51 @@ class _AmenitySideBarState extends State<AmenitySideBar> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Amenities",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          InkWell(
-            onTap: (){
-              _showAddClassificationDailog();
-            },
-            child: Text(
-              "Add Amenity",
-              style: Theme.of(context)
-                  .textTheme
-                  .caption!
-                  .copyWith(color: Colors.white70),
-            ),
+
+          SizedBox(height: defaultPadding),
+          Row(
+            children: [
+
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 20,bottom: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Concepts",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      InkWell(
+                        onTap: (){
+                          _showAddConceptDialog();
+                        },
+                        child: Text(
+                          "Add Concept",
+                          style: Theme.of(context)
+                              .textTheme
+                              .caption!
+                              .copyWith(color: Colors.white70),
+                        ),
+                      )
+
+
+                    ],
+                  ),
+                ),
+              ),
+
+              //Text(amountOfFiles)
+            ],
           ),
           SizedBox(height: defaultPadding),
           Container(
             margin: EdgeInsets.only(top: defaultPadding),
             padding: EdgeInsets.all(defaultPadding),
             child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('amenities').where("neighbourId",isEqualTo:neighbourId).snapshots(),
+              stream: FirebaseFirestore.instance.collection('concepts')
+                  .where("neighbourId",isEqualTo:provider.boardMemberModel!.neighbourId).snapshots(),
               builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                 if (snapshot.hasError) {
                   return Center(
@@ -249,7 +276,7 @@ class _AmenitySideBarState extends State<AmenitySideBar> {
                   return Center(
                     child: Column(
                       children: [
-                        Text("No Amenities Added")
+                        Text("No Concepts Added")
 
                       ],
                     ),
@@ -261,35 +288,35 @@ class _AmenitySideBarState extends State<AmenitySideBar> {
                   shrinkWrap: true,
                   children: snapshot.data!.docs.map((DocumentSnapshot document) {
                     Map<String, dynamic> data = document.data() as Map<String, dynamic>;
-
+                    SingleItemModel model=new SingleItemModel.fromMap(data,document.reference.id);
                     return new Padding(
                         padding: const EdgeInsets.only(top: 1.0),
                         child: InkWell(
                           child: Container(
                             child: ListTile(
-                              title: Text(data['name']),
+
+                              title: Text("${model.name}",maxLines: 2,),
                               trailing: IconButton(
                                 icon: Icon(Icons.delete_forever,color: Colors.white,),
                                 onPressed: (){
                                   AwesomeDialog(
-                                    dialogBackgroundColor: secondaryColor,
                                     width: MediaQuery.of(context).size.width*0.3,
                                     context: context,
+                                    dialogBackgroundColor: secondaryColor,
                                     dialogType: DialogType.QUESTION,
                                     animType: AnimType.BOTTOMSLIDE,
-                                    title: 'Delete Amenity',
+                                    title: 'Delete Concept',
                                     desc: 'Are you sure you want to delete this record?',
                                     btnCancelOnPress: () {
-                                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => AccessScreen()));
+                                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => PaymentScreen()));
                                     },
                                     btnOkOnPress: () {
-                                      FirebaseFirestore.instance.collection('amenities').doc(document.reference.id).delete().then((value) =>
-                                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => AccessScreen())));
+                                      FirebaseFirestore.instance.collection('concepts').doc(document.reference.id).delete().then((value) =>
+                                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => PaymentScreen())));
                                     },
                                   )..show();
                                 },
                               ),
-
                             ),
                           ),
                         )
@@ -303,7 +330,7 @@ class _AmenitySideBarState extends State<AmenitySideBar> {
 
         ],
       ),
-    ):Center(child:CircularProgressIndicator());
+    );
   }
 }
 

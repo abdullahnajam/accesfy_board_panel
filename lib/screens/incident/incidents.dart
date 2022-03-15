@@ -1,5 +1,6 @@
 import 'package:accessify/components/incident/incident_sidebar.dart';
 import 'package:accessify/models/generate_password.dart';
+import 'package:accessify/provider/UserDataProvider.dart';
 import 'package:accessify/responsive.dart';
 import 'package:accessify/components/incident/Incindet_list.dart';
 import 'package:accessify/components/header.dart';
@@ -9,6 +10,7 @@ import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sn_progress_dialog/sn_progress_dialog.dart';
 import '../../constants.dart';
 
@@ -23,12 +25,13 @@ class Incidents extends StatefulWidget {
 }
 
 class _IncidentsState extends State<Incidents> {
-  addClassification(String name) async{
+  addClassification(String name,neighbourId) async{
     print("rr");
     final ProgressDialog pr = ProgressDialog(context: context);
     pr.show(max: 100, msg: "Adding");
     FirebaseFirestore.instance.collection('classification_incident').add({
       'name': name,
+      'neighbourId':neighbourId,
     }).then((value) {
       pr.close();
       Navigator.pop(context);
@@ -153,7 +156,8 @@ class _IncidentsState extends State<Incidents> {
                             SizedBox(height: 15,),
                             InkWell(
                               onTap: (){
-                                addClassification(nameController.text.trim());
+                                final provider = Provider.of<UserDataProvider>(context, listen: false);
+                                addClassification(nameController.text.trim(),provider.boardMemberModel!.neighbourId);
                               },
                               child: Container(
                                 height: 50,

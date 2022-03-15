@@ -3,6 +3,7 @@ import 'package:accessify/screens/access_control/access_control_queue.dart';
 import 'package:accessify/screens/dashboard/resident.dart';
 import 'package:accessify/screens/navigators/access_screen.dart';
 import 'package:accessify/screens/navigators/annoucement_screen.dart';
+import 'package:accessify/screens/navigators/facility_screen.dart';
 import 'package:accessify/screens/navigators/guard_screen.dart';
 import 'package:accessify/screens/navigators/incident_screen.dart';
 import 'package:accessify/screens/navigators/inventory_screen.dart';
@@ -93,6 +94,13 @@ class SideMenu extends StatelessWidget {
               svgSrc: "assets/icons/reservation.png",
               press: () {
                 Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => ReservationScreen()));
+              },
+            ),
+            DrawerListTile(
+              title: "Facilities",
+              svgSrc: "assets/icons/reservation.png",
+              press: () {
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => FacilityScreen()));
               },
             ),
             DrawerListTile(

@@ -1,6 +1,7 @@
 import 'dart:html';
 
 import 'package:accessify/components/guard/guard_list.dart';
+import 'package:accessify/components/payment/concept.dart';
 import 'package:accessify/components/payment/payment_list.dart';
 import 'package:accessify/models/generate_password.dart';
 import 'package:accessify/models/home/guard_model.dart';
@@ -12,6 +13,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:month_picker_dialog/month_picker_dialog.dart';
 import 'package:sn_progress_dialog/sn_progress_dialog.dart';
 import '../../constants.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -59,6 +61,7 @@ class _PaymentState extends State<Payment> {
     DateTime? picked;
     int expirationInMilli=DateTime.now().millisecondsSinceEpoch;
     DateTime? selectedDate = DateTime.now();
+    DateTime? monthDate = DateTime.now();
     final _formKey = GlobalKey<FormState>();
     return showDialog(
       context: context,
@@ -168,7 +171,7 @@ class _PaymentState extends State<Payment> {
                                                 child: Container(
                                                   width: MediaQuery.of(context).size.width*0.3,
                                                   child: StreamBuilder<QuerySnapshot>(
-                                                    stream: FirebaseFirestore.instance.collection('homeowner').snapshots(),
+                                                    stream: FirebaseFirestore.instance.collection('homeowner').where("neighbourId",isEqualTo:neighbourId).snapshots(),
                                                     builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                                                       if (snapshot.hasError) {
                                                         return Center(
@@ -267,108 +270,65 @@ class _PaymentState extends State<Payment> {
                               ],
                             ),
                             SizedBox(height: 10,),
-                            Row(
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Expanded(
-                                    flex: 1,
-                                    child: Container(
-                                      margin: EdgeInsets.only(right: 5),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            "Month",
-                                            style: Theme.of(context).textTheme.bodyText1!.apply(color: secondaryColor),
-                                          ),
-                                          TextFormField(
-                                            controller: monthController,
-                                            style: TextStyle(color: Colors.black),
-                                            validator: (value) {
-                                              if (value == null || value.isEmpty) {
-                                                return 'Please enter some text';
-                                              }
-                                              return null;
-                                            },
-                                            decoration: InputDecoration(
-                                              contentPadding: EdgeInsets.all(15),
-                                              focusedBorder: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(7.0),
-                                                borderSide: BorderSide(
-                                                  color: primaryColor,
-                                                ),
-                                              ),
-                                              enabledBorder: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(7.0),
-                                                borderSide: BorderSide(
-                                                    color: primaryColor,
-                                                    width: 0.5
-                                                ),
-                                              ),
-                                              border: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(7.0),
-                                                borderSide: BorderSide(
-                                                  color: primaryColor,
-                                                  width: 0.5,
-                                                ),
-                                              ),
-                                              hintText: "",
-                                              floatingLabelBehavior: FloatingLabelBehavior.always,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    )
+                                Text(
+                                  "Month",
+                                  style: Theme.of(context).textTheme.bodyText1!.apply(color: secondaryColor),
                                 ),
-                                Expanded(
-                                    flex: 1,
-                                    child: Container(
-                                      margin: EdgeInsets.only(left: 5),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            "Year",
-                                            style: Theme.of(context).textTheme.bodyText1!.apply(color: secondaryColor),
-                                          ),
-                                          TextFormField(
-                                            controller: yearController,
-                                            style: TextStyle(color: Colors.black),
-                                            validator: (value) {
-                                              if (value == null || value.isEmpty) {
-                                                return 'Please enter some text';
-                                              }
-                                              return null;
-                                            },
-                                            decoration: InputDecoration(
-                                              contentPadding: EdgeInsets.all(15),
-                                              focusedBorder: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(7.0),
-                                                borderSide: BorderSide(
-                                                  color: primaryColor,
-                                                ),
-                                              ),
-                                              enabledBorder: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(7.0),
-                                                borderSide: BorderSide(
-                                                    color: primaryColor,
-                                                    width: 0.5
-                                                ),
-                                              ),
-                                              border: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(7.0),
-                                                borderSide: BorderSide(
-                                                  color: primaryColor,
-                                                  width: 0.5,
-                                                ),
-                                              ),
-                                              hintText: "",
-                                              floatingLabelBehavior: FloatingLabelBehavior.always,
-                                            ),
-                                          ),
-                                        ],
+                                TextFormField(
+                                  readOnly: true,
+                                  onTap: (){
+                                    showMonthPicker(
+                                      context: context,
+                                      firstDate:  DateTime.now().subtract(Duration(days: 0)),
+                                      lastDate: DateTime(DateTime.now().year + 1, 9),
+                                      initialDate: monthDate ?? DateTime.now(),
+                                      locale: Locale("en"),
+                                    ).then((date) {
+                                      if (date != null) {
+                                        setState(() {
+                                          monthDate = date;
+                                          monthController.text=DateFormat("MMMM, yyyy").format(monthDate!);
+                                        });
+                                      }
+                                    });
+                                  },
+                                  controller: monthController,
+                                  style: TextStyle(color: Colors.black),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter some text';
+                                    }
+                                    return null;
+                                  },
+                                  decoration: InputDecoration(
+                                    contentPadding: EdgeInsets.all(15),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(7.0),
+                                      borderSide: BorderSide(
+                                        color: primaryColor,
                                       ),
-                                    )
-                                )
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(7.0),
+                                      borderSide: BorderSide(
+                                          color: primaryColor,
+                                          width: 0.5
+                                      ),
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(7.0),
+                                      borderSide: BorderSide(
+                                        color: primaryColor,
+                                        width: 0.5,
+                                      ),
+                                    ),
+                                    hintText: "",
+                                    floatingLabelBehavior: FloatingLabelBehavior.always,
+                                  ),
+                                ),
                               ],
                             ),
                             SizedBox(height: 10,),
@@ -382,6 +342,87 @@ class _PaymentState extends State<Payment> {
                                   style: Theme.of(context).textTheme.bodyText1!.apply(color: secondaryColor),
                                 ),
                                 TextFormField(
+                                  readOnly: true,
+                                  onTap: (){
+                                    showDialog(
+                                        context: context,
+                                        builder: (BuildContext context){
+                                          return StatefulBuilder(
+                                            builder: (context,setState){
+                                              return Dialog(
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: const BorderRadius.all(
+                                                    Radius.circular(10.0),
+                                                  ),
+                                                ),
+                                                insetAnimationDuration: const Duration(seconds: 1),
+                                                insetAnimationCurve: Curves.fastOutSlowIn,
+                                                elevation: 2,
+                                                child: Container(
+                                                  width: MediaQuery.of(context).size.width*0.3,
+                                                  child: StreamBuilder<QuerySnapshot>(
+                                                    stream: FirebaseFirestore.instance.collection('concepts').where("neighbourId",isEqualTo:neighbourId).snapshots(),
+                                                    builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                                                      if (snapshot.hasError) {
+                                                        return Center(
+                                                          child: Column(
+                                                            children: [
+                                                              Image.asset("assets/images/wrong.png",width: 150,height: 150,),
+                                                              Text("Something Went Wrong",style: TextStyle(color: Colors.black))
+
+                                                            ],
+                                                          ),
+                                                        );
+                                                      }
+
+                                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                                        return Center(
+                                                          child: CircularProgressIndicator(),
+                                                        );
+                                                      }
+                                                      if (snapshot.data!.size==0){
+                                                        return Center(
+                                                          child: Column(
+                                                            children: [
+                                                              Image.asset("assets/images/empty.png",width: 150,height: 150,),
+                                                              Text("No homeowner Added",style: TextStyle(color: Colors.black))
+
+                                                            ],
+                                                          ),
+                                                        );
+
+                                                      }
+
+                                                      return new ListView(
+                                                        shrinkWrap: true,
+                                                        children: snapshot.data!.docs.map((DocumentSnapshot document) {
+                                                          Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+
+                                                          return new Padding(
+                                                            padding: const EdgeInsets.only(top: 15.0),
+                                                            child: ListTile(
+                                                              onTap: (){
+                                                                setState(() {
+                                                                  conceptController.text="${data['name']}";
+                                                                  userId=document.reference.id;
+                                                                });
+                                                                Navigator.pop(context);
+                                                              },
+                                                              title: Text("${data['name']}",style: TextStyle(color: Colors.black),),
+                                                            ),
+                                                          );
+                                                        }).toList(),
+                                                      );
+                                                    },
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          );
+                                        }
+                                    );
+
+                                  },
                                   controller: conceptController,
                                   style: TextStyle(color: Colors.black),
                                   validator: (value) {
@@ -662,8 +703,8 @@ class _PaymentState extends State<Payment> {
                                   FirebaseFirestore.instance.collection('payment').add({
                                     'name': nameController.text,
                                     'address': addressController.text,
-                                    'month': monthController.text,
-                                    'year': yearController.text,
+                                    'month': DateFormat("MMMM").format(monthDate!),
+                                    'year': DateFormat("yyyy").format(monthDate!),
                                     'invoiceNumber': invoiceNumberController.text,
                                     'concept': conceptController.text,
                                     'interest': interestController.text,
@@ -751,12 +792,19 @@ class _PaymentState extends State<Payment> {
                       PaymentList(),
                       if (Responsive.isMobile(context))
                         SizedBox(height: defaultPadding),
+                      if (Responsive.isMobile(context))
+                        ConceptList()
 
                     ],
                   ),
                 ),
                 if (!Responsive.isMobile(context))
                   SizedBox(width: defaultPadding),
+                if (!Responsive.isMobile(context))
+                  Expanded(
+                    flex: 2,
+                    child: ConceptList(),
+                  ),
                 
 
               ],

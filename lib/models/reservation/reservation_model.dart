@@ -8,16 +8,16 @@ class ReservationModel{
 
   ReservationModel.fromMap(Map<String,dynamic> map,String key)
       : id=key,
-        date = map['date'],
-        facilityName = map['facilityName'],
-        hourStart = map['hourStart'],
-        status = map['status'],
-        facilityId = map['facilityId'],
-        hourEnd = map['hourEnd'],
-        userId = map['userId'],
-        dateNoFormat = map['dateNoFormat'],
-        qr = map['qr'],
-        totalGuests = map['totalGuests'];
+        date = map['date']??"none",
+        facilityName = map['facilityName']??"none",
+        hourStart = map['hourStart']??"none",
+        status = map['status']??"none",
+        facilityId = map['facilityId']??"none",
+        hourEnd = map['hourEnd']??"none",
+        userId = map['userId']??"none",
+        dateNoFormat = map['dateNoFormat']??"none",
+        qr = map['qr']??"none",
+        totalGuests = map['totalGuests']??"none";
 
 
 

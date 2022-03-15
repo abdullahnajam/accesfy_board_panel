@@ -1,6 +1,8 @@
 import 'dart:html';
 
+import 'package:accessify/models/board_member_model.dart';
 import 'package:accessify/models/generate_password.dart';
+import 'package:accessify/provider/UserDataProvider.dart';
 import 'package:accessify/responsive.dart';
 import 'package:accessify/components/dashboard/dashboard_sidebar.dart';
 import 'package:accessify/components/header.dart';
@@ -8,6 +10,7 @@ import 'package:accessify/components/dashboard/resident_list.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sn_progress_dialog/sn_progress_dialog.dart';
 import '../../constants.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -37,6 +40,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
   var commentController=TextEditingController();
   String? _classification;
   String neighbour="",neighbourId="";
+  bool dataLoaded=false;
 
 
   @override
@@ -49,10 +53,14 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
         .then((DocumentSnapshot documentSnapshot) {
       if (documentSnapshot.exists) {
         Map<String, dynamic> data = documentSnapshot.data() as Map<String, dynamic>;
+
+        BoardMemberModel model=BoardMemberModel.fromMap(data, documentSnapshot.reference.id);
+        final provider = Provider.of<UserDataProvider>(context, listen: false);
+        provider.setUserData(model);
         setState(() {
           neighbour=data['neighbourhoodName'];
           neighbourId=data['neighbourId'];
-          print("nn $neighbour $neighbourId");
+          dataLoaded=true;
         });
 
       }
@@ -84,6 +92,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
           'password': password,
           'neighbourId':neighbourId,
           'neighbourhood':neighbour,
+          'status':"Active",
           'classification':_classification==null?"No Classification":_classification
         }).then((value) {
           pr.close();
@@ -629,12 +638,12 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                   style: Theme.of(context).textTheme.bodyText1!.apply(color: secondaryColor),
                                 ),
                                 StreamBuilder<QuerySnapshot>(
-                                    stream: FirebaseFirestore.instance.collection('classification').snapshots(),
+                                    stream: FirebaseFirestore.instance.collection('classification').where("neighbourId",isEqualTo:neighbourId).snapshots(),
                                     builder: (context, snapshot){
                                       if (!snapshot.hasData)
                                         return const Center(child: const CircularProgressIndicator(),);
                                       var length = snapshot.data!.docs.length;
-                                      DocumentSnapshot ds = snapshot.data!.docs[length - 1];
+                                      //DocumentSnapshot ds = snapshot.data!.docs[length - 1];
                                       //Map<String, dynamic> data = ds.data() as Map<String, dynamic>;
 
                                       return new Container(
@@ -834,10 +843,10 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                       ),
 
                       SizedBox(height: defaultPadding),
-                      ResidentList(),
+                      dataLoaded?ResidentList():CircularProgressIndicator(),
                       if (Responsive.isMobile(context))
                         SizedBox(height: defaultPadding),
-                      if (Responsive.isMobile(context)) DashboardSidebar(),
+                      if (Responsive.isMobile(context)) dataLoaded?DashboardSidebar():Center(child: CircularProgressIndicator(),),
                     ],
                   ),
                 ),
@@ -846,7 +855,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                 if (!Responsive.isMobile(context))
                   Expanded(
                     flex: 2,
-                    child: DashboardSidebar(),
+                    child: dataLoaded?DashboardSidebar():Center(child: CircularProgressIndicator()),
                   ),
 
               ],

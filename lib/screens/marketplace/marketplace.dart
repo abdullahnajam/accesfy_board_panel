@@ -69,6 +69,7 @@ class _MarketPlaceState extends State<MarketPlace> {
     pr.show(max: 100, msg: "Adding");
     FirebaseFirestore.instance.collection('classification_marketplace').add({
       'name': classification,
+      'neighbourId':neighbourId,
     }).then((value) {
       pr.close();
       print("added");
@@ -607,7 +608,7 @@ class _MarketPlaceState extends State<MarketPlace> {
                                                 child: Container(
                                                   width: MediaQuery.of(context).size.width*0.3,
                                                   child: StreamBuilder<QuerySnapshot>(
-                                                    stream: FirebaseFirestore.instance.collection('classification_marketplace').snapshots(),
+                                                    stream: FirebaseFirestore.instance.collection('classification_marketplace').where("neighbourId",isEqualTo:neighbourId).snapshots(),
                                                     builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                                                       if (snapshot.hasError) {
                                                         return Center(
@@ -732,7 +733,7 @@ class _MarketPlaceState extends State<MarketPlace> {
                                                 child: Container(
                                                   width: MediaQuery.of(context).size.width*0.3,
                                                   child: StreamBuilder<QuerySnapshot>(
-                                                    stream: FirebaseFirestore.instance.collection('homeowner').snapshots(),
+                                                    stream: FirebaseFirestore.instance.collection('homeowner').where("neighbourId",isEqualTo:neighbourId).snapshots(),
                                                     builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                                                       if (snapshot.hasError) {
                                                         return Center(

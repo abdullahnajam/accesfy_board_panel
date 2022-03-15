@@ -79,7 +79,7 @@ class _SurveyState extends State<Survey> {
 
               child: Container(
                 padding: EdgeInsets.all(20),
-                height: MediaQuery.of(context).size.height*0.7,
+                height: MediaQuery.of(context).size.height,
                 width: MediaQuery.of(context).size.width*0.5,
                 decoration: BoxDecoration(
                     color: Colors.white,
@@ -202,10 +202,17 @@ class _SurveyState extends State<Survey> {
                               ],
                             ),
                             SizedBox(height: defaultPadding,),
-                            isAnswer!?Container():Expanded(
+                            isAnswer!?Container():Container(
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(7.0),
+                                border: Border.all(color: primaryColor)
+                              ),
+                              padding: EdgeInsets.all(10),
+                              height: MediaQuery.of(context).size.height*0.4,
                               child: ListView.builder(
+                                
                                 shrinkWrap: true,
-                                physics: NeverScrollableScrollPhysics(),
+                                //physics: NeverScrollableScrollPhysics(),
                                 itemCount: choiceController.length,
                                 itemBuilder: (context,index){
                                   return Container(
@@ -287,7 +294,7 @@ class _SurveyState extends State<Survey> {
                                     'status': "New",
                                     'choices': choices,
                                     'isMCQ': !isAnswer!,
-                                    'attempts': "0",
+                                    'attempts': [],
                                     'neighbourId': neighbourId,
                                   }).then((value) {
                                     pr.close();

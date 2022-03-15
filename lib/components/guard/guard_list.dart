@@ -1,4 +1,5 @@
 import 'dart:html';
+import 'package:accessify/provider/UserDataProvider.dart';
 import 'package:firebase/firebase.dart' as fb;
 import 'package:accessify/models/home/guard_model.dart';
 import 'package:accessify/models/home/homeowner.dart';
@@ -9,6 +10,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 import 'package:sn_progress_dialog/progress_dialog.dart';
 
 import '../../../../constants.dart';
@@ -28,6 +30,7 @@ class _GuardListState extends State<GuardList> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<UserDataProvider>(context, listen: false);
     return Container(
       padding: EdgeInsets.all(defaultPadding),
       decoration: BoxDecoration(
@@ -42,7 +45,8 @@ class _GuardListState extends State<GuardList> {
             style: Theme.of(context).textTheme.subtitle1,
           ),
           StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance.collection('guard').snapshots(),
+            stream: FirebaseFirestore.instance.collection('guard')
+                .where("neighbourId",isEqualTo:provider.boardMemberModel!.neighbourId).snapshots(),
             builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (snapshot.hasError) {
                 return Text('Something went wrong');
@@ -535,7 +539,8 @@ Future<void> _showEditGuardDailog(GuardModel model,BuildContext context) async {
                                     phoneController.text,
                                     supervisorController.text,
                                     emailController.text,
-                                    ""
+                                    "",
+                                    model.status
                                 );
                                 updateGuard(newModel,context);
                               }

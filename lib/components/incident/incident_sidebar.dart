@@ -1,6 +1,7 @@
 import 'dart:html';
 import 'package:accessify/models/generate_password.dart';
 import 'package:accessify/models/home/guard_model.dart';
+import 'package:accessify/provider/UserDataProvider.dart';
 import 'package:accessify/screens/navigators/incident_screen.dart';
 import 'package:accessify/screens/navigators/main_screen.dart';
 import 'package:advanced_datatable/datatable.dart';
@@ -10,6 +11,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase/firebase.dart' as fb;
+import 'package:provider/provider.dart';
 import 'package:sn_progress_dialog/progress_dialog.dart';
 
 import '../../../constants.dart';
@@ -26,6 +28,7 @@ class _IncidentSidebarState extends State<IncidentSidebar> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<UserDataProvider>(context, listen: false);
     return Container(
       padding: EdgeInsets.all(defaultPadding),
       decoration: BoxDecoration(
@@ -50,7 +53,7 @@ class _IncidentSidebarState extends State<IncidentSidebar> {
               child: Container(
                 height: MediaQuery.of(context).size.height*0.2,
                 child: StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance.collection('classification_incident').snapshots(),
+                  stream: FirebaseFirestore.instance.collection('classification_incident').where("neighbourId",isEqualTo:provider.boardMemberModel!.neighbourId).snapshots(),
                   builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                     if (snapshot.hasError) {
                       return Center(

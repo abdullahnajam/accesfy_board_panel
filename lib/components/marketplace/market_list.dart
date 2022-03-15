@@ -219,7 +219,7 @@ DataRow _buildListItem(BuildContext context, DocumentSnapshot data) {
             border: Border.all(color: primaryColor)
         ),
         alignment: Alignment.center,
-        child: Text("Approve",maxLines: 1,style: Theme.of(context).textTheme.button!.apply(color: primaryColor),),
+        child: Text("Approve",maxLines: 1,style: TextStyle(fontSize: 13,color: primaryColor),),
       ),
     )):DataCell(Container(
       decoration: BoxDecoration(
